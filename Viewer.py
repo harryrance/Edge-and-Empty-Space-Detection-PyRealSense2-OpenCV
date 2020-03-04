@@ -38,6 +38,8 @@ class Viewer:
 
         #Points array for finding dead space
         self.dead_points = []
+        #Contours array for setting contour
+        self.active_contours = []
 
         # Change this to change how much BG is removed initially
         clipping_dist_m = 5
@@ -127,32 +129,45 @@ class Viewer:
         return edges
 
     def find_contours(self, edges):
+
         im = cv2.cvtColor(self.bg_removed, cv2.COLOR_BGR2GRAY)
         contours, hierarchy = cv2.findContours(im.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        print(hierarchy)
+        print(len(contours))
+        self.active_contours.append(contours)
+        if len(self.active_contours) > 8:
+            for i in range(0, 8):
+                if cv2.arcLength(self.active_contours[8 - i][0], True) > 100.:
+                    contours = self.active_contours[8 - i]
+                    del(self.active_contours[0])
+                    break
 
-        cnt = contours[0]
-        epsilon = 0.01 * cv2.arcLength(cnt, True)
-        approx = cv2.approxPolyDP(cnt, epsilon, True)
+            cnt = contours[0]
+            perim = cv2.arcLength(cnt, True)
+            print("Perim: {} {}".format(perim, type(perim)))
+            epsilon = 0.01 * cv2.arcLength(cnt, True)
+            approx = cv2.approxPolyDP(cnt, epsilon, True)
 
-        cv2.drawContours(self.bg_removed, [approx], -1, (0, 0, 255), 5)
-        x, y, w, h = cv2.boundingRect(cnt)
-        cv2.rectangle(self.bg_removed, (x,y), (x+w, y+h), (255, 0 ,0), 2)
-        rect = cv2.minAreaRect(cnt)
+            cv2.drawContours(self.bg_removed, [approx], -1, (0, 0, 255), 5)
+            x, y, w, h = cv2.boundingRect(cnt)
+            cv2.rectangle(self.bg_removed, (x,y), (x+w, y+h), (255, 0 ,0), 2)
+            rect = cv2.minAreaRect(cnt)
 
-        box = cv2.boxPoints(rect)
-        box = np.int0(box)
+            box = cv2.boxPoints(rect)
+            box = np.int0(box)
 
-        cv2.drawContours(self.bg_removed, [box], 0, (0,255,0), 2)
+            cv2.drawContours(self.bg_removed, [box], 0, (0,255,0), 2)
 
-        '''
-        rows, cols = im.shape[:2]
-        [vx, vy, x, y] = cv2.fitLine(cnt, cv2.DIST_L2, 0, 0.01, 0.01)
-        lefty = int((-x * vy / vx) + y)
-        righty = int(((cols - x) * vy / vx) + y)
-        cv2.line(self.bg_removed, (cols - 1, righty), (0, lefty), (0, 255, 0), 2)
-        '''
+            '''
+            rows, cols = im.shape[:2]
+            [vx, vy, x, y] = cv2.fitLine(cnt, cv2.DIST_L2, 0, 0.01, 0.01)
+            lefty = int((-x * vy / vx) + y)
+            righty = int(((cols - x) * vy / vx) + y)
+            cv2.line(self.bg_removed, (cols - 1, righty), (0, lefty), (0, 255, 0), 2)
+            '''
 
-        return box, rect
+            return box, rect
+        return 0, 0
 
     def draw_roi(self, box, theta):
         b_l = box[0]
@@ -256,54 +271,55 @@ class Viewer:
         # DETECT EDGES
         self.edges = self.canny_edge(self.bg_removed)
         box, rect = self.find_contours(self.edges)
-        mid, w_h, theta = rect
-        self.get_x_dist(mid, w_h, theta)
-        #print("Mid: {} Width: {} Height: {} Theta: {}".format(mid, w_h[0], w_h[1], theta))
+        if type(box) != int:
+            mid, w_h, theta = rect
+            self.get_x_dist(mid, w_h, theta)
+            #print("Mid: {} Width: {} Height: {} Theta: {}".format(mid, w_h[0], w_h[1], theta))
 
-        # Get ROI points in format:
-        #    (1)p_l ---------- p_r(2)
-        #       |              |
-        #       |              |
-        #       |      ROI     |
-        #       |              |
-        #       |              |
-        #       |              |
-        #    (3)t_l_ -------- t_r_(4)
+            # Get ROI points in format:
+            #    (1)p_l ---------- p_r(2)
+            #       |              |
+            #       |              |
+            #       |      ROI     |
+            #       |              |
+            #       |              |
+            #       |              |
+            #    (3)t_l_ -------- t_r_(4)
 
-        pt3, pt4, pt1, pt2, _tl, _tr, _bl, _br = self.draw_roi(box, theta)
+            pt3, pt4, pt1, pt2, _tl, _tr, _bl, _br = self.draw_roi(box, theta)
 
-        #print("        #    {} ---------- {}".format(pt1, pt2))
-        #print("        #     |                        |")
-        #print("        #     |                        |")
-       # print("        #     |    ROI                 |")
-        #print("        #     |                        |")
-        #print("        #     |                        |")
-       # print("        #    {} ---------- {}".format(pt3, pt4))
+            #print("        #    {} ---------- {}".format(pt1, pt2))
+            #print("        #     |                        |")
+            #print("        #     |                        |")
+           # print("        #     |    ROI                 |")
+            #print("        #     |                        |")
+            #print("        #     |                        |")
+           # print("        #    {} ---------- {}".format(pt3, pt4))
 
-        #Check to see if there is a line of black pixels within the bounding box
-        if pt1 and pt4 and pt2 and pt3:
-            if theta < -50.:
-                a0, b0, c0, _, _, _ = self.get_line_eq((_tr, _bl), (_tr, _bl))
-            else:
-                a0, b0, c0, _, _, _ = self.get_line_eq((_tr, _br), (_tr, _br))
-           # print("Pt1: {} Pt2: {}\nEq: {}x + {}y = {}".format(_tl, _bl, a0, b0, c0))
-           # print("TL: {} TR: {} BL: {} BR: {}, THETA: {}".format(_tl, _tr, _bl, _br, theta))
-            black_space = []
-            for y in range (_tl[1], _bl[1], 2):
-                if a0 != 0:
-                    dx = int((_tr[0] - _tl[0]) / 2)
-                    x = int((c0 - y)/a0) - dx
-                    y = int(y)
+            #Check to see if there is a line of black pixels within the bounding box
+            if pt1 and pt4 and pt2 and pt3:
+                if theta < -50.:
+                    a0, b0, c0, _, _, _ = self.get_line_eq((_tr, _bl), (_tr, _bl))
+                else:
+                    a0, b0, c0, _, _, _ = self.get_line_eq((_tr, _br), (_tr, _br))
+               # print("Pt1: {} Pt2: {}\nEq: {}x + {}y = {}".format(_tl, _bl, a0, b0, c0))
+               # print("TL: {} TR: {} BL: {} BR: {}, THETA: {}".format(_tl, _tr, _bl, _br, theta))
+                black_space = []
+                for y in range (_tl[1], _bl[1], 2):
+                    if a0 != 0:
+                        dx = int((_tr[0] - _tl[0]) / 2)
+                        x = int((c0 - y)/a0) - dx
+                        y = int(y)
 
-                    BGR = self.get_colour(x, y)
-                    if BGR == (0, 0, 0):
-                        black_space.append((x, y))
+                        BGR = self.get_colour(x, y)
+                        if BGR == (0, 0, 0):
+                            black_space.append((x, y))
 
-                    #cv2.circle(self.bg_removed, (x, y), 4, (0, 255, 0), 2)
-           # print(black_space)
-            #for coord in black_space:
-                #cv2.circle(self.bg_removed, coord, 4, (255, 255, 0), 2)
-        self.find_dead_space_flat(pt1, pt4)
+                        #cv2.circle(self.bg_removed, (x, y), 4, (0, 255, 0), 2)
+               # print(black_space)
+                #for coord in black_space:
+                    #cv2.circle(self.bg_removed, coord, 4, (255, 255, 0), 2)
+            self.find_dead_space_flat(pt1, pt4)
 
         self.images = np.hstack((self.bg_removed, self.colour_image))
 
