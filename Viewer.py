@@ -1,7 +1,7 @@
 import sys
 
 sys.path.append('/usr/local/lib')
-#Test for commit
+
 import pyrealsense2 as rs
 import numpy as np
 import cv2
