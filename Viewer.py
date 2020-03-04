@@ -130,10 +130,14 @@ class Viewer:
 
     def find_contours(self, edges):
 
+        # Find the contours of the viewed object. 'cv2.RETR_EXTERNAL' specifies that only the external contour is to be used.
         im = cv2.cvtColor(self.bg_removed, cv2.COLOR_BGR2GRAY)
         contours, hierarchy = cv2.findContours(im.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-        print(hierarchy)
-        print(len(contours))
+
+        # The following code ensures that there will always be a contour drawn on the screen.
+        # 1 - 9 contours are stored. the last contour's perimeter is examined. If it is below a threshold, it is ignored.
+        # 2 - If a contour is selected to have a large enough perimeter, this contour is used and the first index
+        #     of the array is deleted. This keeps the array at a fixed length to save memory.
         self.active_contours.append(contours)
         if len(self.active_contours) > 8:
             for i in range(0, 8):
@@ -142,15 +146,20 @@ class Viewer:
                     del(self.active_contours[0])
                     break
 
+            # Use the first set of contours
             cnt = contours[0]
-            perim = cv2.arcLength(cnt, True)
-            print("Perim: {} {}".format(perim, type(perim)))
+
+            # Calculate an approximation of the contour to reduce any error.
             epsilon = 0.01 * cv2.arcLength(cnt, True)
             approx = cv2.approxPolyDP(cnt, epsilon, True)
 
+            # Draw the contours and a vertical bounding rectangle
             cv2.drawContours(self.bg_removed, [approx], -1, (0, 0, 255), 5)
             x, y, w, h = cv2.boundingRect(cnt)
             cv2.rectangle(self.bg_removed, (x,y), (x+w, y+h), (255, 0 ,0), 2)
+
+            # Calculate the minimum area rectangle (mid point, width, height, rotation) and convert the values into an
+            # OpenCV box vector. Use this vector to draw a rotated bounding box that will always be a perfect rectangle.
             rect = cv2.minAreaRect(cnt)
 
             box = cv2.boxPoints(rect)
