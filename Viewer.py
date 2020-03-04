@@ -1,3 +1,5 @@
+#Class for the realsense image processing
+
 import sys
 
 sys.path.append('/usr/local/lib')
