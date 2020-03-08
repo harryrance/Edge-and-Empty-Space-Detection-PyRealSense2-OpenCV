@@ -10,6 +10,8 @@ import cv2
 import operator
 import math
 
+from statistics import mean
+
 
 class Viewer:
     def __init__(self):
@@ -127,6 +129,47 @@ class Viewer:
         edges = cv2.dilate(edges, kernel, iterations=1)
 
         return edges
+    # Function used to find the orientation of the target with respect to the camera's coordinate space
+    def check_z_orientation(self, centre):
+
+        # Pass in the centre point of the object, and create a left and right point with respect to an x offset
+        offset = 30
+        right = (centre[0] + offset, centre[1])
+        left = (centre[0] - offset, centre[1])
+
+        # Check to make sure that the selected pixels are active in the depth frame
+        if self.get_colour(int(centre[0]), int(centre[1])) != (0, 0, 0):
+            if self.get_colour(int(right[0]), int(right[1])) != (0, 0, 0):
+
+                # Get the distance in metres to each point
+                l_depth = self.aligned_depth_frame.get_distance(int(left[0]), int(left[1]))
+                r_depth = self.aligned_depth_frame.get_distance(int(right[0]), int(right[1]))
+                c_depth = self.aligned_depth_frame.get_distance(int(centre[0]), int(centre[1]))
+
+                # Use the intrinsic depth data to deproject the pixel into its positional coordinates (in m) relative
+                # to an arbitrary coordinate space
+                c_intrin = rs.rs2_deproject_pixel_to_point(self.depth_intrin, [int(centre[0]), int(centre[1])], c_depth)
+                r_intrin = rs.rs2_deproject_pixel_to_point(self.depth_intrin, [int(right[0]), int(right[1])], r_depth)
+
+                # Find the distances in the x-direction and z-direction. Pythagoras can then be used on a triangle
+                # as if the target was being viewed from a birds-eye perspective
+                x_dist = r_intrin[0] - c_intrin[0]
+                z_dist = r_intrin[2] - c_intrin[2]
+
+                # Calculate the angle of the target with respect to the angle of the camera
+                theta_r = math.atan((z_dist/x_dist))
+                theta_d = math.degrees(theta_r)
+
+                x1, y1 = 700, 100
+
+                length = 100
+
+                x2 = int(x1 + length * math.cos(theta_r))
+                y2 = int(y1 + length * math.sin(theta_r))
+
+                # Draw a graphical representation on the screen of the angle of the target
+                cv2.line(self.bg_removed, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                cv2.line(self.bg_removed, (x1, y1), (x1 + 100, y1), (0, 0, 255), 2)
 
     def find_contours(self, edges):
 
@@ -135,16 +178,46 @@ class Viewer:
         contours, hierarchy = cv2.findContours(im.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
         # The following code ensures that there will always be a contour drawn on the screen.
-        # 1 - 9 contours are stored. the last contour's perimeter is examined. If it is below a threshold, it is ignored.
-        # 2 - If a contour is selected to have a large enough perimeter, this contour is used and the first index
-        #     of the array is deleted. This keeps the array at a fixed length to save memory.
+        # 1 - 10 contours are stored. the last contour's area is examined. If it is within a threshold, it is ignored.
+        # 2 - If a contour's perimeter is outside the set threshold, the areas array is iterated through to find an
+        #     acceptable area, then the corresponding contour is used instead.
+
+        # Initialise contours, perimeter and area arrays
         self.active_contours.append(contours)
-        if len(self.active_contours) > 8:
-            for i in range(0, 8):
-                if cv2.arcLength(self.active_contours[8 - i][0], True) > 100.:
-                    contours = self.active_contours[8 - i]
+
+        storage_length = 10
+        perims = []
+        areas = []
+
+        # Only proceed if there are 10 contours stored
+        if len(self.active_contours) == storage_length:
+            # Append perims and areas into respective arrays
+            for i in range(0, storage_length):
+                perims.append(cv2.arcLength(self.active_contours[i][0], True))
+                areas.append(cv2.contourArea(self.active_contours[i][0]))
+
+            # Find the current area and average of last 10 areas
+            avg_area = mean(areas)
+            curr_area = cv2.contourArea(self.active_contours[i][0])
+
+
+            if len(areas) >= storage_length:
+                # If the current area is greater and average, or within 15% less than average, use the most recently
+                # stored contour
+                if (curr_area > avg_area) or ((avg_area - (avg_area*0.15)) < curr_area):
+                    contours = self.active_contours[-1]
+
+                    #Remove the oldest contour from the list
                     del(self.active_contours[0])
-                    break
+
+                else:
+                    # If the contour area is outside the set threshold, scan the last 10 contours to find a suitable one
+                    for j in range(0, storage_length):
+                        if areas[storage_length - 1 - j] > avg_area or ((avg_area - (avg_area*0.15)) < areas[storage_length - 1 - j]):
+                            # If a contour area is within the threshold, use this contour.
+                            contours = self.active_contours[storage_length - 1 - j]
+                            del (self.active_contours[0])
+                            break
 
             # Use the first set of contours
             cnt = contours[0]
@@ -252,12 +325,12 @@ class Viewer:
         # FRAME ALIGNMENT
         aligned_frames = self.align.process(frames)
 
-        aligned_depth_frame = aligned_frames.get_depth_frame()
+        self.aligned_depth_frame = aligned_frames.get_depth_frame()
         self.colour_frame = aligned_frames.get_color_frame()
 
         # FILTER THE DEPTH FRAME
         #filtered_depth_frame = self.filter_depth(aligned_depth_frame)
-        filtered_depth_frame = aligned_depth_frame
+        filtered_depth_frame = self.aligned_depth_frame
         filtered_depth_image = np.asanyarray(filtered_depth_frame.get_data())
 
         self.colourised_filtered_depth = np.asanyarray(self.colouriser.colorize(filtered_depth_frame).get_data())
@@ -268,9 +341,11 @@ class Viewer:
         depth_sensor = self.profile.get_device().first_depth_sensor()
         depth_scale = depth_sensor.get_depth_scale()
 
-        clipping_dist_m = self.adapt_depth_clipping(aligned_depth_frame)
+        clipping_dist_m = self.adapt_depth_clipping(self.aligned_depth_frame)
         self.clipping_dist = clipping_dist_m / depth_scale
 
+        # Get Intrinsic depth
+        self.depth_intrin = self.aligned_depth_frame.profile.as_video_stream_profile().intrinsics
         # REMOVE BACKGROUND
         grey_colour = 0
         depth_image_3d = np.dstack((filtered_depth_image, filtered_depth_image, filtered_depth_image))
@@ -283,6 +358,7 @@ class Viewer:
         if type(box) != int:
             mid, w_h, theta = rect
             self.get_x_dist(mid, w_h, theta)
+            self.check_z_orientation(mid)
             #print("Mid: {} Width: {} Height: {} Theta: {}".format(mid, w_h[0], w_h[1], theta))
 
             # Get ROI points in format:
