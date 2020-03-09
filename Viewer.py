@@ -9,6 +9,7 @@ import numpy as np
 import cv2
 import operator
 import math
+import time
 
 from statistics import mean
 
@@ -175,7 +176,8 @@ class Viewer:
 
         # Find the contours of the viewed object. 'cv2.RETR_EXTERNAL' specifies that only the external contour is to be used.
         im = cv2.cvtColor(self.bg_removed, cv2.COLOR_BGR2GRAY)
-        contours, hierarchy = cv2.findContours(im.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        #contours, hierarchy = cv2.findContours(im.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        contours, hierarchy = cv2.findContours(im.copy(), cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE)
 
         # The following code ensures that there will always be a contour drawn on the screen.
         # 1 - 10 contours are stored. the last contour's area is examined. If it is within a threshold, it is ignored.
@@ -205,8 +207,12 @@ class Viewer:
                 # If the current area is greater and average, or within 15% less than average, use the most recently
                 # stored contour
                 if (curr_area > avg_area) or ((avg_area - (avg_area*0.15)) < curr_area):
-                    contours = self.active_contours[-1]
-
+                    int_cnt, ext_cnt = self.separate_contours(self.active_contours[-1], hierarchy)
+                    #contours = self.active_contours[-1]
+                    contours = ext_cnt
+                    square_gap = max(int_cnt, key=len)
+                    contours_int = int_cnt
+                    #print("Int Cnt If: {}".format(int_cnt))
                     #Remove the oldest contour from the list
                     del(self.active_contours[0])
 
@@ -215,7 +221,14 @@ class Viewer:
                     for j in range(0, storage_length):
                         if areas[storage_length - 1 - j] > avg_area or ((avg_area - (avg_area*0.15)) < areas[storage_length - 1 - j]):
                             # If a contour area is within the threshold, use this contour.
-                            contours = self.active_contours[storage_length - 1 - j]
+                            int_cnt, ext_cnt = self.separate_contours(self.active_contours[storage_length - 1 - j], hierarchy)
+                            #contours = self.active_contours[storage_length - 1 - j]
+                            contours = ext_cnt
+
+                            square_gap = max(int_cnt, key=len)
+
+                            contours_int = int_cnt
+                            #print("Int Cnt Else: {}".format(int_cnt))
                             del (self.active_contours[0])
                             break
 
@@ -228,8 +241,8 @@ class Viewer:
 
             # Draw the contours and a vertical bounding rectangle
             cv2.drawContours(self.bg_removed, [approx], -1, (0, 0, 255), 5)
-            x, y, w, h = cv2.boundingRect(cnt)
-            cv2.rectangle(self.bg_removed, (x,y), (x+w, y+h), (255, 0 ,0), 2)
+            cv2.drawContours(self.bg_removed, contours_int, -1, (0, 255, 0), 5)
+            cv2.drawContours(self.bg_removed, square_gap, -1, (255, 255, 0), 5)
 
             # Calculate the minimum area rectangle (mid point, width, height, rotation) and convert the values into an
             # OpenCV box vector. Use this vector to draw a rotated bounding box that will always be a perfect rectangle.
@@ -248,8 +261,19 @@ class Viewer:
             cv2.line(self.bg_removed, (cols - 1, righty), (0, lefty), (0, 255, 0), 2)
             '''
 
-            return box, rect
-        return 0, 0
+            return box, rect, contours_int
+        return 0, 0, 0
+
+    def separate_contours(self, contours, hierarchy):
+        # If hierarchy[0][i][3] == -1, the contour is external. Else, internal
+        int_cnt = []
+        ext_cnt = []
+        for i in range(0, len(hierarchy[0])):
+            if hierarchy[0][i][3] == -1 and i < len(contours):
+                ext_cnt.append(contours[i])
+            if hierarchy[0][i][3] > -1 and i < len(contours):
+                int_cnt.append(contours[i])
+        return int_cnt, ext_cnt
 
     def draw_roi(self, box, theta):
         b_l = box[0]
@@ -354,7 +378,12 @@ class Viewer:
 
         # DETECT EDGES
         self.edges = self.canny_edge(self.bg_removed)
-        box, rect = self.find_contours(self.edges)
+        box, rect, internal_contours = self.find_contours(self.edges)
+        if internal_contours:
+            square_gap = max(internal_contours, key=len)
+
+            print(len(square_gap))
+
         if type(box) != int:
             mid, w_h, theta = rect
             self.get_x_dist(mid, w_h, theta)

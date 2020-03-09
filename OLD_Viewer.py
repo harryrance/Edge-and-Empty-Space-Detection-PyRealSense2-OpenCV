@@ -150,3 +150,39 @@
                     cv2.putText(self.bg_removed, 'Dead Space', (_roi[0][0] - 30, _roi[0][1] - 40),
                                 cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
             '''
+
+
+
+
+
+'''
+        # Only proceed if there are 10 contours stored
+        if len(self.active_contours) == storage_length:
+            # Append perims and areas into respective arrays
+            for i in range(0, storage_length):
+                perims.append(cv2.arcLength(self.active_contours[i][0], True))
+                areas.append(cv2.contourArea(self.active_contours[i][0]))
+
+            # Find the current area and average of last 10 areas
+            avg_area = mean(areas)
+            curr_area = cv2.contourArea(self.active_contours[i][0])
+
+
+            if len(areas) >= storage_length:
+                # If the current area is greater and average, or within 15% less than average, use the most recently
+                # stored contour
+                if (curr_area > avg_area) or ((avg_area - (avg_area*0.15)) < curr_area):
+                    contours = self.active_contours[-1]
+
+                    #Remove the oldest contour from the list
+                    del(self.active_contours[0])
+
+                else:
+                    # If the contour area is outside the set threshold, scan the last 10 contours to find a suitable one
+                    for j in range(0, storage_length):
+                        if areas[storage_length - 1 - j] > avg_area or ((avg_area - (avg_area*0.15)) < areas[storage_length - 1 - j]):
+                            # If a contour area is within the threshold, use this contour.
+                            contours = self.active_contours[storage_length - 1 - j]
+                            del (self.active_contours[0])
+                            break
+        '''
