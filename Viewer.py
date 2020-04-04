@@ -53,6 +53,23 @@ class Viewer:
         self.dead_space = False
         self.pillar_detected = False
 
+        self.verified_deployment_area = False
+
+        self.direction_to_move = ''
+        self.distance_to_move = 0
+        self.distance_from_pillar = 0.
+        self.deployment_area_coordinates = []
+
+        self.internal_contour = False
+        self.external_contour = False
+
+        self.contour_shrink_sf = 1.
+
+        self.deploy_tl = (0, 0)
+        self.deploy_tr = (0, 0)
+        self.deploy_bl = (0, 0)
+        self.deploy_br = (0, 0)
+
     def adapt_depth_clipping(self, depth_image):
         e1 = cv2.getTickCount()
         # Define X and Y bounds to check depth in (search middle third). Keep as round numbers so that steps of 2, 5 or 10 can be used
@@ -83,6 +100,18 @@ class Viewer:
         #print("Adapt Depth Clipping: {}".format(time1))
 
         return closest_obj_tol
+
+    def get_move_dir(self, lr_dir):
+        drone_dir = ' '
+        if lr_dir == 'move left':
+            drone_dir = 'L'
+        elif lr_dir == 'move right':
+            drone_dir = 'R'
+        elif lr_dir == 'centered':
+            drone_dir = 'X'
+
+    def get_deploy_coordinates(self):
+        pass
 
     def do_nothing(self):
         pass
@@ -173,7 +202,7 @@ class Viewer:
                 cv2.line(self.bg_removed, (x1, y1), (x1 + 100, y1), (0, 0, 255), 2)
 
     def find_contours(self, edges):
-
+        self.verified_deployment_area = False
         # Find the contours of the viewed object. 'cv2.RETR_EXTERNAL' specifies that only the external contour is to be used.
         im = cv2.cvtColor(self.bg_removed, cv2.COLOR_BGR2GRAY)
         #contours, hierarchy = cv2.findContours(im.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
@@ -202,6 +231,8 @@ class Viewer:
             avg_area = mean(areas)
             curr_area = cv2.contourArea(self.active_contours[i][0])
 
+            self.internal_contour = False
+            self.external_contour = False
 
             if len(areas) >= storage_length:
                 # If the current area is greater and average, or within 15% less than average, use the most recently
@@ -210,8 +241,15 @@ class Viewer:
                     int_cnt, ext_cnt = self.separate_contours(self.active_contours[-1], hierarchy)
                     #contours = self.active_contours[-1]
                     contours = ext_cnt
-                    square_gap = max(int_cnt, key=len)
-                    contours_int = int_cnt
+                    self.external_contour = True
+                    if int_cnt:
+                        square_gap = max(int_cnt, key=len)
+
+                        contours_int = int_cnt
+                        self.internal_contour = True
+                    else:
+                        square_gap = [0, 0, 0, 0]
+                        contours_int = [[0, 0, 0, 0,], [0, 0, 0, 0,], [0, 0, 0, 0,], [0, 0, 0, 0,]]
                     #print("Int Cnt If: {}".format(int_cnt))
                     #Remove the oldest contour from the list
                     del(self.active_contours[0])
@@ -224,55 +262,308 @@ class Viewer:
                             int_cnt, ext_cnt = self.separate_contours(self.active_contours[storage_length - 1 - j], hierarchy)
                             #contours = self.active_contours[storage_length - 1 - j]
                             contours = ext_cnt
+                            self.external_contour = True
+                            if int_cnt:
+                                square_gap = max(int_cnt, key=len)
 
-                            square_gap = max(int_cnt, key=len)
-
-                            contours_int = int_cnt
+                                contours_int = int_cnt
+                                self.internal_contour = True
+                            else:
+                                square_gap = [0, 0, 0, 0]
+                                contours_int = [[0, 0, 0, 0,], [0, 0, 0, 0,], [0, 0, 0, 0,], [0, 0, 0, 0,]]
                             #print("Int Cnt Else: {}".format(int_cnt))
                             del (self.active_contours[0])
                             break
 
             # Use the first set of contours
-            cnt = contours[0]
+            #print('Len: {} '.format(len(contours)))
+            if len(contours) > 0:
+                cnt = contours[0]
 
-            # Calculate an approximation of the contour to reduce any error.
-            epsilon = 0.01 * cv2.arcLength(cnt, True)
-            approx = cv2.approxPolyDP(cnt, epsilon, True)
+                # Calculate an approximation of the contour to reduce any error.
+                epsilon = 0.01 * cv2.arcLength(cnt, True)
+                approx = cv2.approxPolyDP(cnt, epsilon, True)
 
-            # Draw the contours and a vertical bounding rectangle
-            cv2.drawContours(self.bg_removed, [approx], -1, (0, 0, 255), 5)
-            cv2.drawContours(self.bg_removed, contours_int, -1, (0, 255, 0), 5)
-            cv2.drawContours(self.bg_removed, square_gap, -1, (255, 255, 0), 5)
+                # Draw the contours and a vertical bounding rectangle
+                cv2.drawContours(self.bg_removed, [approx], -1, (0, 0, 255), 5)
+                #cv2.drawContours(self.bg_removed, contours_int, -1, (0, 255, 0), 5)
+                if square_gap != [0, 0, 0, 0]:
+                    cv2.drawContours(self.bg_removed, square_gap, -1, (255, 255, 0), 5)
 
-            # Calculate the minimum area rectangle (mid point, width, height, rotation) and convert the values into an
-            # OpenCV box vector. Use this vector to draw a rotated bounding box that will always be a perfect rectangle.
-            rect = cv2.minAreaRect(cnt)
+                # Calculate the minimum area rectangle (mid point, width, height, rotation) and convert the values into an
+                # OpenCV box vector. Use this vector to draw a rotated bounding box that will always be a perfect rectangle.
+                rect = cv2.minAreaRect(cnt)
 
-            box = cv2.boxPoints(rect)
-            box = np.int0(box)
+                box = cv2.boxPoints(rect)
+                box = np.int0(box)
 
-            cv2.drawContours(self.bg_removed, [box], 0, (0,255,0), 2)
+                cv2.drawContours(self.bg_removed, [box], 0, (0,255,0), 2)
 
-            '''
-            rows, cols = im.shape[:2]
-            [vx, vy, x, y] = cv2.fitLine(cnt, cv2.DIST_L2, 0, 0.01, 0.01)
-            lefty = int((-x * vy / vx) + y)
-            righty = int(((cols - x) * vy / vx) + y)
-            cv2.line(self.bg_removed, (cols - 1, righty), (0, lefty), (0, 255, 0), 2)
-            '''
+                if self.internal_contour:
 
-            return box, rect, contours_int
-        return 0, 0, 0
+                    int_cnt_perim = cv2.arcLength(square_gap, True)
 
+                    if int_cnt_perim > 40.:
+
+                        M = cv2.moments(square_gap)
+                        c_x = int(M["m10"] / M["m00"])
+                        c_y = int(M["m01"] / M["m00"])
+
+                        cnt_norm = square_gap - [c_x, c_y]
+
+                        cnt_scaled = cnt_norm * self.contour_shrink_sf
+                        cnt_scaled = cnt_scaled + [c_x, c_y]
+                        cnt_scaled = cnt_scaled.astype(np.int32)
+                        scaled_rect = cv2.minAreaRect(cnt_scaled)
+
+                        scaled_box = cv2.boxPoints(scaled_rect)
+
+                        #print(scaled_rect, scaled_box)
+                        scaled_box = np.int0(scaled_box)
+
+                        if not self.verified_deployment_area:
+                            self.deploy_tl, self.deploy_tr, self.deploy_bl, self.deploy_br = \
+                                self.scale_internal_contour(scaled_rect[0], scaled_rect[1])
+
+                        cv2.circle(self.bg_removed, (c_x, c_y), 7, (255, 255, 255), -1)
+
+                        gap_rect = cv2.minAreaRect(square_gap)
+
+                        gap_box = cv2.boxPoints(gap_rect)
+                        gap_box = np.int0(gap_box)
+
+                        cv2.drawContours(self.bg_removed, [gap_box], 0, (255, 0, 255), 2)
+                        #cv2.drawContours(self.bg_removed, [cnt_scaled], 0, (0, 0, 255), 2)
+                        if self.verified_deployment_area:
+
+                            cv2.drawContours(self.bg_removed, [scaled_box], 0, (0, 255, 255), 2)
+                            self.get_deployment_coords(self.deploy_tl, self.deploy_tr, self.deploy_bl, self.deploy_br)
+
+                        #print("Gap Box Points: {}".format(gap_box))
+
+                        #self.shrink_gap_boundaries(gap_box)
+
+                '''
+                rows, cols = im.shape[:2]
+                [vx, vy, x, y] = cv2.fitLine(cnt, cv2.DIST_L2, 0, 0.01, 0.01)
+                lefty = int((-x * vy / vx) + y)
+                righty = int(((cols - x) * vy / vx) + y)
+                cv2.line(self.bg_removed, (cols - 1, righty), (0, lefty), (0, 255, 0), 2)
+                '''
+
+                return box, rect, contours_int
+
+        false_return = [[0, 0, 0, 0,], [0, 0, 0, 0,], [0, 0, 0, 0,], [0, 0, 0, 0,]]
+
+        return 0, 0, false_return
+
+    def get_deployment_coords(self, tl, tr, bl, br):
+
+        self.deploy_tl = tl
+        self.deploy_tr = tr
+        self.deploy_bl = bl
+        self.deploy_br = br
+
+        self.deployment_area_coordinates = [self.deploy_tl, self.deploy_tr, self.deploy_bl, self.deploy_br]
+
+        print("Deployment Coords: {}".format(self.deployment_area_coordinates))
+
+        return self.deployment_area_coordinates
+
+    def scale_internal_contour(self, centre, dims):
+        c_x, c_y = centre
+        c_x, c_y = int(c_x), int(c_y)
+
+        t_w, t_h = dims
+
+        w, h = int(t_w / 2), int(t_h / 2)
+
+        tl = (c_x - w, c_y - h)
+        tr = (c_x + w, c_y - h)
+
+        bl = (c_x - w, c_y + h)
+        br = (c_x + w, c_y + h)
+
+        points = [tl, bl, tr, br]
+
+        self.verify_deployment_area(points)
+
+        print("Status: {} Coords: ({}), ({}), ({}), ({})".format(self.verified_deployment_area, tl, tr, bl, br))
+
+        if self.verified_deployment_area == False:
+            self.contour_shrink_sf -= 0.05
+
+        return tl, tr, bl, br
+
+        #cv2.circle(self.bg_removed, tl, 3, (255, 255, 255), -1)
+        #cv2.circle(self.bg_removed, tr, 3, (255, 255, 255), -1)
+        #cv2.circle(self.bg_removed, bl, 3, (255, 255, 255), -1)
+        #cv2.circle(self.bg_removed, br, 3, (255, 255, 255), -1)
+
+    '''
+    def shrink_gap_boundaries(self, gap_box):
+        point_list = []
+        shrunk_points = []
+
+        pt1, pt2, pt3, pt4 = gap_box
+
+        point_list.append(pt1)
+        point_list.append(pt2)
+        point_list.append(pt3)
+        point_list.append(pt4)
+
+        #Sorted into order :TL, BL, TR, BR
+        sorted_point_list = sorted(point_list, key=operator.itemgetter(0, 1))
+
+        #Begin by shrinking square by 10%
+
+
+        #print("Original: {}".format(point_list))
+        #print("Sorted: {}".format(sorted_point_list))
+        self.times_shrunk = 0
+        shrunk_points = self.shrink_5(sorted_point_list)
+
+        while self.verified_deployment_area == False:
+            self.verify_deployment_area(shrunk_points)
+
+            shrunk_points = self.shrink_5(shrunk_points)
+
+        self.deployment_area_coordinates = shrunk_points
+
+        #print("Deployment Area Coordinates: {}".format(self.deployment_area_coordinates))
+
+        shrunk_points = np.int0(shrunk_points)
+
+        for point in shrunk_points:
+            cv2.circle(self.bg_removed, (point[0], point[1]), 3, (0, 0, 255))
+    '''
+    def verify_deployment_area(self, shrunk_points):
+        tl, bl, tr, br = shrunk_points
+
+        no_collisions = True
+
+        tl_x, tl_y = tl
+        tr_x, tr_y = tr
+        bl_x, bl_y = bl
+        br_x, br_y = br
+
+        #First, check along top edge
+        for x in range(int(tl_x), int(tr_x)):
+            #for y in range(int(tl_y), int(tr_y)):
+            #print("TOP: {}".format(self.get_colour(x, tl_y)))
+            if self.get_colour(x, tl_y) == (0, 0, 0):
+                no_collisions = True
+            else:
+                no_collisions = False
+
+        # Bottom Edge
+        for x in range(int(bl_x), int(br_x)):
+            #for y in range(int(bl_y), int(br_y)):
+            #print("BTM: {}".format(self.get_colour(x, bl_y)))
+            if self.get_colour(x, bl_y) == (0, 0, 0):
+                no_collisions = True
+            else:
+                no_collisions = False
+
+        # Left Edge
+        for y in range(int(tl_y), int(bl_y)):
+            #for x in range(int(tl_x), int(bl_x)):
+            #print("L: {}".format(self.get_colour(tl_x, y)))
+            if self.get_colour(tl_x, y) == (0, 0, 0):
+                no_collisions = True
+            else:
+                no_collisions = False
+
+        # Right Edge
+        for y in range(int(tr_y), int(br_y)):
+            #for x in range(int(tr_x), int(br_x)):
+            #print("R: {}".format(self.get_colour(tr_x, y)))
+            if self.get_colour(tr_x, y) == (0, 0, 0):
+                no_collisions = True
+            else:
+                no_collisions = False
+
+        if no_collisions == True:
+            self.verified_deployment_area = True
+        else:
+            self.verified_deployment_area = False
+
+    '''
+    def shrink_5(self, sorted_points):
+
+        temp_points = []
+        temp_element = []
+        tuple_no = 0
+        element_no = 0
+
+        for tuple in sorted_points:
+            element_no = 0
+            temp_element = []
+            for element in tuple:
+                if tuple_no == 0:
+                    if element_no == 0:
+                        element += 10
+                    elif element_no == 1:
+                        element += 10
+                    else:
+                        break
+
+                elif tuple_no == 1:
+                    if element_no == 0:
+                        element += 10
+                    elif element_no == 1:
+                        element -= 10
+                    else:
+                        break
+
+                elif tuple_no == 2:
+                    if element_no == 0:
+                        element -= 10
+                    elif element_no == 1:
+                        element += 10
+                    else:
+                        break
+
+                elif tuple_no == 3:
+                    if element_no == 0:
+                        element -= 10
+                    elif element_no == 1:
+                        element -= 10
+                    else:
+                        break
+
+                else:
+                    break
+
+                temp_element.insert(element_no, element)
+                element_no += 1
+
+            temp_points.insert(tuple_no, temp_element)
+            tuple_no += 1
+
+        self.times_shrunk += 1
+        print(self.times_shrunk)
+        #print("Temp Points: {}".format(temp_points))
+
+        return temp_points
+    '''
     def separate_contours(self, contours, hierarchy):
         # If hierarchy[0][i][3] == -1, the contour is external. Else, internal
         int_cnt = []
         ext_cnt = []
+        #if self.internal_contour and self.external_contour:
         for i in range(0, len(hierarchy[0])):
             if hierarchy[0][i][3] == -1 and i < len(contours):
                 ext_cnt.append(contours[i])
             if hierarchy[0][i][3] > -1 and i < len(contours):
                 int_cnt.append(contours[i])
+
+        if int_cnt:
+            self.internal_contour = True
+        if ext_cnt:
+            self.external_contour = True
+
+        #print("INT: {} EXT: {}".format(int_cnt, ext_cnt))
         return int_cnt, ext_cnt
 
     def draw_roi(self, box, theta):
@@ -335,9 +626,9 @@ class Viewer:
                 p_l = (int(p_lx), int(p_ly))
                 p_r = (int(p_rx), int(p_ry))
 
-                cv2.line(self.bg_removed, (t_l_), (p_l), (255, 0, 0), 2)
-                cv2.line(self.bg_removed, (t_r_), (p_r), (255, 0, 0), 2)
-                cv2.line(self.bg_removed, (p_l), (p_r), (255, 0, 0), 2)
+                #cv2.line(self.bg_removed, (t_l_), (p_l), (255, 0, 0), 2)
+                #cv2.line(self.bg_removed, (t_r_), (p_r), (255, 0, 0), 2)
+                #cv2.line(self.bg_removed, (p_l), (p_r), (255, 0, 0), 2)
 
                 return t_l_, t_r_, p_l, p_r, t_l, t_r, b_l, b_r
         return 0,0,0,0,0,0,0,0
@@ -379,15 +670,19 @@ class Viewer:
         # DETECT EDGES
         self.edges = self.canny_edge(self.bg_removed)
         box, rect, internal_contours = self.find_contours(self.edges)
-        if internal_contours:
+        temp_array = [[0, 0, 0, 0,], [0, 0, 0, 0,], [0, 0, 0, 0,], [0, 0, 0, 0,]]
+        #print("CONTOUR INTERNAL: {}".format(internal_contours))
+        if internal_contours != temp_array:
+
             square_gap = max(internal_contours, key=len)
 
-            print(len(square_gap))
+            #print(len(square_gap))
 
         if type(box) != int:
             mid, w_h, theta = rect
-            self.get_x_dist(mid, w_h, theta)
+            move_dir_lr = self.get_x_dist(mid, w_h, theta)
             self.check_z_orientation(mid)
+            self.get_move_dir(move_dir_lr)
             #print("Mid: {} Width: {} Height: {} Theta: {}".format(mid, w_h[0], w_h[1], theta))
 
             # Get ROI points in format:
@@ -433,7 +728,7 @@ class Viewer:
                # print(black_space)
                 #for coord in black_space:
                     #cv2.circle(self.bg_removed, coord, 4, (255, 255, 0), 2)
-            self.find_dead_space_flat(pt1, pt4)
+            #self.find_dead_space_flat(pt1, pt4)
 
         self.images = np.hstack((self.bg_removed, self.colour_image))
 
@@ -449,21 +744,17 @@ class Viewer:
 
             dx = screen_mid_x - mid_x
 
-            dir = ' '
-
             if dx > 0:
                 dir = 'move left'
             elif dx < 0:
                 dir = 'move right'
             else:
-                dir = 'centred'
+                dir = 'centered'
 
-            #print("Box Centre: {} Screen Centre: {} dX: {}".format(mid_x, screen_mid_x, dx))
-            #print("{} ".format(dir))
-
-            cv2.circle(self.bg_removed, (int(mid[0]), int(mid[1])), 6, (255, 0, 155), 2)
             cv2.putText(self.bg_removed, dir, (40, 30),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 0), 2)
+
+            return dir
 
     def find_dead_space_with_bearings(self):
         pass
@@ -677,38 +968,6 @@ class Viewer:
             intercept = ('NA', 'NA')
 
         return intercept
-
-    def intercept_and_topline(self, inter_points):
-
-        inter_1 = inter_points[0]
-        inter_2 = inter_points[1]
-
-        inter_1_x = inter_1[0]
-        inter_1_y = inter_1[1]
-
-        inter_2_x = inter_2[0]
-        inter_2_y = inter_2[1]
-
-        if inter_1_y < 0.:
-            inter_1_y = inter_2_y
-        if inter_2_y < 0.:
-            inter_2_y = inter_1_y
-        if inter_1_y > 479.:
-            inter_1_y = inter_2_y
-        if inter_2_y > 479.:
-            inter_2_y = inter_1_y
-
-        top_lines = []
-
-        if (0. < inter_1_x < 848.) and (0. < inter_2_x < 848.):
-            if (0. < inter_1_y < 480.) and (0. < inter_2_y < 480.):
-                cv2.circle(self.colour_image, (int(inter_1_x), int(inter_1_y)), 4, (0, 255, 0), 2)
-                cv2.circle(self.colour_image, (int(inter_2_x), int(inter_2_y)), 4, (0, 255, 0), 2)
-                cv2.line(self.colour_image, (int(inter_1_x), int(inter_1_y)), (int(inter_2_x), int(inter_2_y)),
-                         (255, 0, 0), 2)
-                top_lines.append(((int(inter_1_x), int(inter_1_y)), (int(inter_2_x), int(inter_2_y))))
-
-        return top_lines
 
     # Show the OpenCV Windows
     def show_window(self):
