@@ -54,11 +54,15 @@ class Viewer:
         self.pillar_detected = False
 
         self.verified_deployment_area = False
+        self.deployment_phase = False
 
+        self.pre_deploy_dir = {}
         self.direction_to_move = ''
         self.distance_to_move = 0
         self.distance_from_pillar = 0.
+
         self.deployment_area_coordinates = []
+        self.deployment_dir_to_move = {}
 
         self.internal_contour = False
         self.external_contour = False
@@ -103,18 +107,28 @@ class Viewer:
 
     def get_move_dir(self, lr_dir):
         drone_dir = ' '
-        if lr_dir == 'move left':
-            drone_dir = 'L'
-        elif lr_dir == 'move right':
-            drone_dir = 'R'
-        elif lr_dir == 'centered':
-            drone_dir = 'X'
+        print("LR DIR: {}".format(lr_dir))
+        if lr_dir is not None:
+            if lr_dir[0] == 'move left':
+                drone_dir = 'L'
+            elif lr_dir[0] == 'move right':
+                drone_dir = 'R'
+            elif lr_dir[0] == 'centered':
+                drone_dir = 'X'
+            else:
+                pass
 
-    def get_deploy_coordinates(self):
-        pass
+            self.pre_deploy_dir = {drone_dir : lr_dir[1]}
 
     def do_nothing(self):
         pass
+
+    def get_drone_control(self):
+        print("In deployment Phase? {}".format(self.deployment_phase))
+        if not self.deployment_phase:
+            return self.pre_deploy_dir
+        else:
+            return self.deployment_dir_to_move
 
     # Filter the depth image to remove a bit of noise/fill holes etc [CURRENTLY REDUNDANT]
     def filter_depth(self, d_frame):
@@ -247,9 +261,12 @@ class Viewer:
 
                         contours_int = int_cnt
                         self.internal_contour = True
+                        self.deployment_phase = True
                     else:
                         square_gap = [0, 0, 0, 0]
                         contours_int = [[0, 0, 0, 0,], [0, 0, 0, 0,], [0, 0, 0, 0,], [0, 0, 0, 0,]]
+                        self.internal_contour = False
+                        self.deployment_phase = False
                     #print("Int Cnt If: {}".format(int_cnt))
                     #Remove the oldest contour from the list
                     del(self.active_contours[0])
@@ -268,13 +285,21 @@ class Viewer:
 
                                 contours_int = int_cnt
                                 self.internal_contour = True
+                                self.deployment_phase = True
                             else:
                                 square_gap = [0, 0, 0, 0]
                                 contours_int = [[0, 0, 0, 0,], [0, 0, 0, 0,], [0, 0, 0, 0,], [0, 0, 0, 0,]]
+                                self.internal_contour = False
+                                self.deployment_phase = False
                             #print("Int Cnt Else: {}".format(int_cnt))
                             del (self.active_contours[0])
                             break
-
+                        else:
+                            square_gap = [0, 0, 0, 0]
+                            contours_int = [[0, 0, 0, 0, ], [0, 0, 0, 0, ], [0, 0, 0, 0, ], [0, 0, 0, 0, ]]
+            else:
+                square_gap = [0, 0, 0, 0]
+                contours_int = [[0, 0, 0, 0, ], [0, 0, 0, 0, ], [0, 0, 0, 0, ], [0, 0, 0, 0, ]]
             # Use the first set of contours
             #print('Len: {} '.format(len(contours)))
             if len(contours) > 0:
@@ -297,14 +322,20 @@ class Viewer:
                 box = cv2.boxPoints(rect)
                 box = np.int0(box)
 
+                mid, w_h, theta = rect
+                move_dir_lr = self.get_x_dist(mid, w_h, theta)
+                self.check_z_orientation(mid)
+                self.get_move_dir(move_dir_lr)
+
                 cv2.drawContours(self.bg_removed, [box], 0, (0,255,0), 2)
 
                 if self.internal_contour:
 
                     int_cnt_perim = cv2.arcLength(square_gap, True)
+                    self.deployment_phase = False
 
-                    if int_cnt_perim > 40.:
-
+                    if int_cnt_perim > 80.:
+                        self.deployment_phase = True
                         M = cv2.moments(square_gap)
                         c_x = int(M["m10"] / M["m00"])
                         c_y = int(M["m01"] / M["m00"])
@@ -325,7 +356,7 @@ class Viewer:
                             self.deploy_tl, self.deploy_tr, self.deploy_bl, self.deploy_br = \
                                 self.scale_internal_contour(scaled_rect[0], scaled_rect[1])
 
-                        cv2.circle(self.bg_removed, (c_x, c_y), 7, (255, 255, 255), -1)
+                        cv2.circle(self.bg_removed, (c_x, c_y), 2, (255, 255, 255), -1)
 
                         gap_rect = cv2.minAreaRect(square_gap)
 
@@ -333,29 +364,52 @@ class Viewer:
                         gap_box = np.int0(gap_box)
 
                         cv2.drawContours(self.bg_removed, [gap_box], 0, (255, 0, 255), 2)
-                        #cv2.drawContours(self.bg_removed, [cnt_scaled], 0, (0, 0, 255), 2)
+
                         if self.verified_deployment_area:
 
                             cv2.drawContours(self.bg_removed, [scaled_box], 0, (0, 255, 255), 2)
                             self.get_deployment_coords(self.deploy_tl, self.deploy_tr, self.deploy_bl, self.deploy_br)
 
-                        #print("Gap Box Points: {}".format(gap_box))
+                            self.get_deployment_dir_to_move(c_x, c_y)
 
-                        #self.shrink_gap_boundaries(gap_box)
 
-                '''
-                rows, cols = im.shape[:2]
-                [vx, vy, x, y] = cv2.fitLine(cnt, cv2.DIST_L2, 0, 0.01, 0.01)
-                lefty = int((-x * vy / vx) + y)
-                righty = int(((cols - x) * vy / vx) + y)
-                cv2.line(self.bg_removed, (cols - 1, righty), (0, lefty), (0, 255, 0), 2)
-                '''
 
                 return box, rect, contours_int
 
         false_return = [[0, 0, 0, 0,], [0, 0, 0, 0,], [0, 0, 0, 0,], [0, 0, 0, 0,]]
 
         return 0, 0, false_return
+
+    def get_deployment_dir_to_move(self, c_x, c_y):
+        s_c_x, s_c_y = (int(self.screen_width/2), int(self.screen_height/2))
+
+        c_x, c_y = int(c_x), int(c_y)
+
+        dx = s_c_x - c_x
+        dy = s_c_y - c_y
+
+        dir_x = dir_y = 0
+
+        if dx > 0:
+            dir_x = 'L'
+        if dx < 0:
+            dir_x = 'R'
+        if dx == 0:
+            dir_x = '_'
+
+        if dy > 0:
+            dir_y = 'U'
+        if dy < 0:
+            dir_y = 'D'
+        if dy == 0:
+            dir_y = '_'
+        self.deployment_dir_to_move = {}
+
+        final_dir = dir_x + dir_y
+        coords = (dx, dy)
+
+        self.deployment_dir_to_move = {final_dir : coords}
+        print(self.deployment_dir_to_move)
 
     def get_deployment_coords(self, tl, tr, bl, br):
 
@@ -560,6 +614,7 @@ class Viewer:
 
         if int_cnt:
             self.internal_contour = True
+            self.deployment_phase = True
         if ext_cnt:
             self.external_contour = True
 
@@ -682,7 +737,7 @@ class Viewer:
             mid, w_h, theta = rect
             move_dir_lr = self.get_x_dist(mid, w_h, theta)
             self.check_z_orientation(mid)
-            self.get_move_dir(move_dir_lr)
+            #self.get_move_dir(move_dir_lr)
             #print("Mid: {} Width: {} Height: {} Theta: {}".format(mid, w_h[0], w_h[1], theta))
 
             # Get ROI points in format:
@@ -697,22 +752,12 @@ class Viewer:
 
             pt3, pt4, pt1, pt2, _tl, _tr, _bl, _br = self.draw_roi(box, theta)
 
-            #print("        #    {} ---------- {}".format(pt1, pt2))
-            #print("        #     |                        |")
-            #print("        #     |                        |")
-           # print("        #     |    ROI                 |")
-            #print("        #     |                        |")
-            #print("        #     |                        |")
-           # print("        #    {} ---------- {}".format(pt3, pt4))
-
             #Check to see if there is a line of black pixels within the bounding box
             if pt1 and pt4 and pt2 and pt3:
                 if theta < -50.:
                     a0, b0, c0, _, _, _ = self.get_line_eq((_tr, _bl), (_tr, _bl))
                 else:
                     a0, b0, c0, _, _, _ = self.get_line_eq((_tr, _br), (_tr, _br))
-               # print("Pt1: {} Pt2: {}\nEq: {}x + {}y = {}".format(_tl, _bl, a0, b0, c0))
-               # print("TL: {} TR: {} BL: {} BR: {}, THETA: {}".format(_tl, _tr, _bl, _br, theta))
                 black_space = []
                 for y in range (_tl[1], _bl[1], 2):
                     if a0 != 0:
@@ -723,12 +768,6 @@ class Viewer:
                         BGR = self.get_colour(x, y)
                         if BGR == (0, 0, 0):
                             black_space.append((x, y))
-
-                        #cv2.circle(self.bg_removed, (x, y), 4, (0, 255, 0), 2)
-               # print(black_space)
-                #for coord in black_space:
-                    #cv2.circle(self.bg_removed, coord, 4, (255, 255, 0), 2)
-            #self.find_dead_space_flat(pt1, pt4)
 
         self.images = np.hstack((self.bg_removed, self.colour_image))
 
@@ -754,7 +793,7 @@ class Viewer:
             cv2.putText(self.bg_removed, dir, (40, 30),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 0), 2)
 
-            return dir
+            return dir, dx
 
     def find_dead_space_with_bearings(self):
         pass

@@ -47,7 +47,10 @@ while True:
     v.update()
     e2 = cv2.getTickCount()
     time1 = (e2 - e1) / cv2.getTickFrequency()
+    control = v.get_drone_control()
 
+    print("########################################")
+    print("     CONTROL: {} ".format(control))
     v.show_window()
 
     #print("Time Update: {},".format(time1))
