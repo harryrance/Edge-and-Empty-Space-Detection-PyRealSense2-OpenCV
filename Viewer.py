@@ -37,7 +37,7 @@ class Viewer:
         self.disparity_to_depth = rs.disparity_transform(False)
 
         depth_sensor = self.profile.get_device().first_depth_sensor()
-        depth_scale = depth_sensor.get_depth_scale()
+        self.depth_scale = depth_sensor.get_depth_scale()
 
         #Points array for finding dead space
         self.dead_points = []
@@ -46,7 +46,7 @@ class Viewer:
 
         # Change this to change how much BG is removed initially
         clipping_dist_m = 5
-        self.clipping_dist = clipping_dist_m / depth_scale
+        self.clipping_dist = clipping_dist_m / self.depth_scale
 
         ### INITIALISE FLIGHT CONTROLL VARIABLES ###
 
@@ -73,6 +73,8 @@ class Viewer:
         self.deploy_tr = (0, 0)
         self.deploy_bl = (0, 0)
         self.deploy_br = (0, 0)
+
+        self.deployment_area_distances_mm = []
 
     def adapt_depth_clipping(self, depth_image):
         e1 = cv2.getTickCount()
@@ -107,7 +109,7 @@ class Viewer:
 
     def get_move_dir(self, lr_dir):
         drone_dir = ' '
-        print("LR DIR: {}".format(lr_dir))
+        #print("LR DIR: {}".format(lr_dir))
         if lr_dir is not None:
             if lr_dir[0] == 'move left':
                 drone_dir = 'L'
@@ -124,7 +126,7 @@ class Viewer:
         pass
 
     def get_drone_control(self):
-        print("In deployment Phase? {}".format(self.deployment_phase))
+
         if not self.deployment_phase:
             return self.pre_deploy_dir
         else:
@@ -368,7 +370,7 @@ class Viewer:
                         if self.verified_deployment_area:
 
                             cv2.drawContours(self.bg_removed, [scaled_box], 0, (0, 255, 255), 2)
-                            self.get_deployment_coords(self.deploy_tl, self.deploy_tr, self.deploy_bl, self.deploy_br)
+                            self.get_deployment_coords(self.deploy_tl, self.deploy_tr, self.deploy_bl, self.deploy_br, gap_rect, rect)
 
                             self.get_deployment_dir_to_move(c_x, c_y)
 
@@ -411,7 +413,7 @@ class Viewer:
         self.deployment_dir_to_move = {final_dir : coords}
         print(self.deployment_dir_to_move)
 
-    def get_deployment_coords(self, tl, tr, bl, br):
+    def get_deployment_coords(self, tl, tr, bl, br, gap_rect, full_rect):
 
         self.deploy_tl = tl
         self.deploy_tr = tr
@@ -420,7 +422,52 @@ class Viewer:
 
         self.deployment_area_coordinates = [self.deploy_tl, self.deploy_tr, self.deploy_bl, self.deploy_br]
 
+        gap_mid, gap_wh, _ = gap_rect
+        full_mid, full_wh, _ = full_rect
+        print("Gap Mid: {} Full Mid: {} ".format(gap_mid, full_mid))
+        print("Gap WH: {} Full WH: {}".format(gap_wh, full_wh))
+        gap_w, gap_h = gap_wh
+        full_w, full_h = full_wh
+
+        gap_ty = gap_mid[1] - gap_h/2
+        gap_by = gap_mid[1] + gap_h/2
+        gap_lx = gap_mid[0] - gap_w/2
+        gap_rx = gap_mid[0] + gap_w/2
+
+        full_ty = full_mid[1] - full_h/2
+        full_by = full_mid[1] + full_h/2
+        full_lx = full_mid[0] - full_w/2
+        full_rx = full_mid[0] + full_w/2
+
+        avg_ty = math.sqrt(math.pow((gap_ty + full_ty), 2)) / 2
+        avg_by = math.sqrt(math.pow((gap_by + full_by), 2)) / 2
+        avg_lx = math.sqrt(math.pow((gap_lx + full_lx), 2)) / 2
+        avg_rx = math.sqrt(math.pow((gap_rx + full_rx), 2)) / 2
+
+        print("Averages: {} {} {} {}".format(avg_ty, avg_by, avg_lx, avg_rx))
+
         print("Deployment Coords: {}".format(self.deployment_area_coordinates))
+        #self.deployment_area_distances_mm[0].append(self.deployment_area_coordinates)
+        shifted_top_1, shifted_top_2 = self.shift_line_y_t(tl, tr, int(avg_ty))
+        d_top_mm = self.deproj_to_pt(shifted_top_1, shifted_top_2)
+
+        shifted_btm_1, shifted_btm_2 = self.shift_line_y_b(bl, br, int(avg_by))
+        d_btm_mm = self.deproj_to_pt(shifted_btm_1, shifted_btm_2)
+
+        shifted_left_1, shifted_left_2 = self.shift_line_x_l(tl, bl, int(avg_lx))
+        d_left_mm = self.deproj_to_pt(shifted_left_1, shifted_left_2)
+
+        shifted_right_1, shifted_right_2 = self.shift_line_x_r(tr, br, int(avg_rx))
+        d_right_mm = self.deproj_to_pt(shifted_right_1, shifted_right_2)
+
+        avg_x_dist = (d_top_mm[0] + d_btm_mm[0]) / 2
+        avg_y_dist = (d_left_mm[1] + d_right_mm[1]) / 2
+
+        self.deployment_area_distances_mm = [avg_x_dist, avg_y_dist]
+
+        print(tl, tr, bl, br)
+        print("Top: {}  Bottom: {}  Left: {}    Right: {}".format(d_top_mm, d_btm_mm, d_left_mm, d_right_mm))
+
 
         return self.deployment_area_coordinates
 
@@ -688,6 +735,95 @@ class Viewer:
                 return t_l_, t_r_, p_l, p_r, t_l, t_r, b_l, b_r
         return 0,0,0,0,0,0,0,0
 
+    def shift_line_y_t(self, point1, point2, avg_ty):
+        pt1_colour = self.get_colour(point1[0], point1[1])
+        pt2_colour = self.get_colour(point2[0], point2[1])
+
+        pt1_x, pt2_x = point1[0], point2[0]
+        pt1_y, pt2_y = point1[1], point2[1]
+        print("Original Coords: {}, {}".format(point1, point2))
+        if pt1_colour == (0, 0, 0) or pt2_colour == (0, 0, 0):
+            pt1_y = avg_ty
+            pt2_y = avg_ty
+
+            print("Shifted Coords: {}, {}".format((pt1_x, pt1_y), (pt2_x, pt2_y)))
+            return (pt1_x, pt1_y), (pt2_x, pt2_y)
+        else:
+            return (pt1_x, pt1_y), (pt2_x, pt2_y)
+
+    def shift_line_y_b(self, point1, point2, avg_by):
+        pt1_colour = self.get_colour(point1[0], point1[1])
+        pt2_colour = self.get_colour(point2[0], point2[1])
+
+        pt1_x, pt2_x = point1[0], point2[0]
+        pt1_y, pt2_y = point1[1], point2[1]
+        print("Original Coords: {}, {}".format(point1, point2))
+        if pt1_colour == (0, 0, 0) or pt2_colour == (0, 0, 0):
+            pt1_y = avg_by
+            pt2_y = avg_by
+
+            print("Shifted Coords: {}, {}".format((pt1_x, pt1_y), (pt2_x, pt2_y)))
+            return (pt1_x, pt1_y), (pt2_x, pt2_y)
+        else:
+            return (pt1_x, pt1_y), (pt2_x, pt2_y)
+
+    def shift_line_x_r(self, point1, point2, avg_rx):
+        pt1_colour = self.get_colour(point1[0], point1[1])
+        pt2_colour = self.get_colour(point2[0], point2[1])
+
+        pt1_x, pt2_x = point1[0], point2[0]
+        pt1_y, pt2_y = point1[1], point2[1]
+        print("Original Coords: {}, {}".format(point1, point2))
+        if pt1_colour == (0, 0, 0) or pt2_colour == (0, 0, 0):
+            pt1_x = avg_rx
+            pt2_x = avg_rx
+
+            print("Shifted Coords: {}, {}".format((pt1_x, pt1_y), (pt2_x, pt2_y)))
+            return (pt1_x, pt1_y), (pt2_x, pt2_y)
+        else:
+            return (pt1_x, pt1_y), (pt2_x, pt2_y)
+
+    def shift_line_x_l(self, point1, point2, avg_lx):
+        pt1_colour = self.get_colour(point1[0], point1[1])
+        pt2_colour = self.get_colour(point2[0], point2[1])
+
+        pt1_x, pt2_x = point1[0], point2[0]
+        pt1_y, pt2_y = point1[1], point2[1]
+        print("Original Coords: {}, {}".format(point1, point2))
+        if pt1_colour == (0, 0, 0) or pt2_colour == (0, 0, 0):
+            pt1_x = avg_lx
+            pt2_x = avg_lx
+
+            print("Shifted Coords: {}, {}".format((pt1_x, pt1_y), (pt2_x, pt2_y)))
+            return (pt1_x, pt1_y), (pt2_x, pt2_y)
+        else:
+            return (pt1_x, pt1_y), (pt2_x, pt2_y)
+
+
+    def deproj_to_pt(self, point1, point2):
+        pixel1 = [point1[0], point1[1]]
+        pixel2 = [point2[0], point2[1]]
+
+        point1 = rs.rs2_deproject_pixel_to_point(self.depth_intrin, pixel1, self.aligned_depth_frame.get_distance(pixel1[0], pixel1[1])/self.depth_scale)
+        point2 = rs.rs2_deproject_pixel_to_point(self.depth_intrin, pixel2, self.aligned_depth_frame.get_distance(pixel2[0], pixel2[1])/self.depth_scale)
+
+        cv2.circle(self.bg_removed, (pixel1[0], pixel1[1]), 2, (0, 255, 0))
+        cv2.circle(self.bg_removed, (pixel2[0], pixel2[1]), 2, (0, 255, 0))
+
+        x1, y1, z1 = point1
+        x2, y2, z2 = point2
+
+        dx = math.sqrt(math.pow((x1 - x2), 2))
+        dy = math.sqrt(math.pow((y1 - y2), 2))
+        dz = math.sqrt(math.pow((z1 - z2), 2))
+
+        print(point1, pixel1)
+        print(point2, pixel2)
+
+        print("Dx: {}mm   Dy: {}mm  Dz: {}mm".format(dx, dy, dz))
+
+        return [dx, dy, dz]
+
     def update(self):
 
         frames = self.pipeline.wait_for_frames()
@@ -709,13 +845,18 @@ class Viewer:
 
         # Change this to change how much BG is removed ADAPTIVE
         depth_sensor = self.profile.get_device().first_depth_sensor()
-        depth_scale = depth_sensor.get_depth_scale()
+        self.depth_scale = depth_sensor.get_depth_scale()
 
         clipping_dist_m = self.adapt_depth_clipping(self.aligned_depth_frame)
-        self.clipping_dist = clipping_dist_m / depth_scale
+        self.clipping_dist = clipping_dist_m / self.depth_scale
 
-        # Get Intrinsic depth
+        # Get Intrinsic depth and colour
         self.depth_intrin = self.aligned_depth_frame.profile.as_video_stream_profile().intrinsics
+        self.colour_intrin = self.colour_frame.profile.as_video_stream_profile().intrinsics
+
+        self.depth_colour_extrin = self.aligned_depth_frame.profile.get_extrinsics_to(self.colour_frame.profile)
+
+
         # REMOVE BACKGROUND
         grey_colour = 0
         depth_image_3d = np.dstack((filtered_depth_image, filtered_depth_image, filtered_depth_image))

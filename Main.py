@@ -49,8 +49,10 @@ while True:
     time1 = (e2 - e1) / cv2.getTickFrequency()
     control = v.get_drone_control()
 
-    print("########################################")
-    print("     CONTROL: {} ".format(control))
+    #print("########################################")
+    #print("     CONTROL: {} ".format(control))
+    #print("In deployment Phase? {}".format(v.deployment_phase))
+    print("Deployment Area Distances: {}".format(v.deployment_area_distances_mm))
     v.show_window()
 
     #print("Time Update: {},".format(time1))
