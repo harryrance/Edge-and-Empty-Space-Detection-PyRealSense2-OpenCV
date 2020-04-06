@@ -186,3 +186,64 @@
                             del (self.active_contours[0])
                             break
         '''
+
+'''
+def find_dead_space_flat(self, pt1, pt4):
+    # The following 8 lines of code ensure that the processed points will never be (0, 0).
+    # This works by:
+    # 1 - Initialise an array with 11 points before the loop starts.
+    # 2 - Work backwards through the array.
+    # 3 - If the most recent point in the array does not equal (0, 0) use these points.
+    # 4 - If the most recent point in the array equals (0, 0), work back until a non-zero point is found, and use that.
+
+    self.dead_points.append((pt1, pt4))
+    if len(self.dead_points) > 10:
+        for i in range(0, 10):
+            if self.dead_points[10 - i] != (0, 0):
+                pt1 = self.dead_points[10 - i][0]
+                pt4 = self.dead_points[10 - i][1]
+                del (self.dead_points[0])
+                break
+
+        # Redundancy check just to make sure that a (0, 0) point has not made it through the previous safety check.
+        if pt1 and pt4:
+
+            # Begin by defining the start and end x and y of the ROI as a square, contracted by 20 pixels.
+            roi_startx = pt1[0] + 20
+            roi_starty = pt1[1] + 20
+
+            roi_endx = pt4[0] - 20
+            roi_endy = pt4[1] - 20
+
+            # Initialise arrays to count the amount of pixels scanned, the amount of black pixels found, and an
+            # array to store the colours found.
+            pixels_scanned = 0
+            pixels_black = 0
+            colour_array = []
+
+            # Step through the defined ROI in increments of 4 to save processing time.
+            for _x in range(roi_startx, roi_endx, 4):
+                for _y in range(roi_starty, roi_endy, 4):
+                    # Check the colour of the defined pixel, and append this into the colours array.
+                    BGR = self.get_colour(_x, _y)
+                    colour_array.append(BGR)
+
+                    # If the analysed pixel is black, increment the counter.
+                    if BGR == (0, 0, 0):
+                        pixels_black += 1
+
+                    # Increment the counter for the amount of pixels scanned every iteration of the loop.
+                    pixels_scanned += 1
+
+            # If every pixel that was scanned in the previous loop was a black pixel, the dead space has been found.
+            # If this is the case, print 'Dead Space' on the screen, and toggle the dead space boolean. Otherwise,
+            # make sure that the dead space boolean remains low, so as to not trigger the initial stages of deployment.
+            if pixels_scanned == pixels_black:
+                cv2.putText(self.bg_removed, 'Dead Space', (roi_startx - 30, roi_starty - 40),
+                            cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                self.dead_space = True
+            else:
+                self.dead_space = False
+                # print("Dead Space Status: {}".format(self.dead_space))
+                # print("Top Left: {} \n Size: {} \n Theta: {}".format(top_left, size, theta))
+'''

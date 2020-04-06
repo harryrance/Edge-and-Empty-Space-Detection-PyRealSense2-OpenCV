@@ -1,4 +1,5 @@
 #Class for the realsense image processing
+##@package pyexample
 
 import sys
 
@@ -15,7 +16,13 @@ from statistics import mean
 
 
 class Viewer:
+    """
+    Class for the Realsense Viewer
+    """
     def __init__(self):
+        """
+        Contructor Function.
+        """
         self.pipeline = rs.pipeline()
         config = rs.config()
         self.screen_width = 848
@@ -77,6 +84,14 @@ class Viewer:
         self.deployment_area_distances_mm = []
 
     def adapt_depth_clipping(self, depth_image):
+        """
+        Function to implement adaptive depth clipping. Takes in the nearest object's depth and eliminated background
+        behind this with a 20% tolerance.
+
+        :param depth_image: The image data of the depth stream from the Realsense camera.
+
+        :return: The distance of the closes object (+20%) tolerance in metres.
+        """
         e1 = cv2.getTickCount()
         # Define X and Y bounds to check depth in (search middle third). Keep as round numbers so that steps of 2, 5 or 10 can be used
         _xmin = 0
@@ -108,6 +123,12 @@ class Viewer:
         return closest_obj_tol
 
     def get_move_dir(self, lr_dir):
+        """
+        Function to get the movement direction in the drone's flight phase.
+
+        :param lr_dir: Move left, right or centred command received from the get_x_dist() function.
+        :return: Dictionary containing key: direction for the drone to move, value: number of pixels away from centre.
+        """
         drone_dir = ' '
         #print("LR DIR: {}".format(lr_dir))
         if lr_dir is not None:
@@ -126,6 +147,11 @@ class Viewer:
         pass
 
     def get_drone_control(self):
+        """
+        Function to get the drone control commands, dependent on the flight phase - either flying, or deploying.
+        :return: Returns the pre-deployment direction if in flight phase, and the deployment direction if in
+                 deployment phase.
+        """
 
         if not self.deployment_phase:
             return self.pre_deploy_dir
@@ -156,6 +182,11 @@ class Viewer:
 
     # Detect edges in the image [CHECK THRESHOLDS]
     def canny_edge(self, image):
+        """
+        Function to find the edges of the object in the clipped colour image.
+        :param image: The colour image data to be processed.
+        :return: The edge data to be used in subsequent processing functions.
+        """
 
         # Convert image to greyscale format from BG
         image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -177,6 +208,11 @@ class Viewer:
         return edges
     # Function used to find the orientation of the target with respect to the camera's coordinate space
     def check_z_orientation(self, centre):
+        """
+        Function to check the orientation about the Z axis of the object being viewed.
+        :param centre: Centre point of the contour of the object.
+        :return: N/A
+        """
 
         # Pass in the centre point of the object, and create a left and right point with respect to an x offset
         offset = 30
@@ -218,6 +254,12 @@ class Viewer:
                 cv2.line(self.bg_removed, (x1, y1), (x1 + 100, y1), (0, 0, 255), 2)
 
     def get_dist_to_pillar(self, rect):
+        """
+        Get the distance between the Realsense camera and the 'bridge support pillar'.
+        :param rect: List containing the centre point of the contour, the height and width of the contour, and the
+                     angle of rotation through the y-axis (into/out of the screen).
+        :return: Distance to the viewed object in millimetres.
+        """
         midpoint, _, _ = rect
 
         mid_x, mid_y = midpoint
@@ -227,6 +269,15 @@ class Viewer:
         return dist
 
     def find_contours(self, edges):
+        """
+        Function used to find the contours of the object being viewed. Contains operations to calculate the outer
+        contour and inner contour, and also draws the contours on the screen, and processes contour data to output
+        multiple variables, including the deployment phase and some movement directions.
+        :param edges: The edge data from the canny_edge() function.
+        :return: Either returns the outer contour box and rect, along with the internal contour data if the contours
+                 are detected and verified to be correct, or 'false contour' data - arrays filled with zeros, if the
+                 contour data is not able to be processed properly.
+        """
         self.verified_deployment_area = False
         # Find the contours of the viewed object. 'cv2.RETR_EXTERNAL' specifies that only the external contour is to be used.
         im = cv2.cvtColor(self.bg_removed, cv2.COLOR_BGR2GRAY)
@@ -415,6 +466,12 @@ class Viewer:
         return 0, 0, false_return
 
     def get_deployment_dir_to_move(self, c_x, c_y):
+        """
+        Gets the direction for the drone to move in the deployment phase.
+        :param c_x: Centre point x coordinate of the internal (gap) contour.
+        :param c_y: Centre point y coordinate of the internal (gap) contour.
+        :return: N/A
+        """
         s_c_x, s_c_y = (int(self.screen_width/2), int(self.screen_height/2))
 
         c_x, c_y = int(c_x), int(c_y)
@@ -446,6 +503,17 @@ class Viewer:
         #print(self.deployment_dir_to_move)
 
     def get_deployment_coords(self, tl, tr, bl, br, gap_rect, full_rect):
+        """
+        Gets the coordinates of the internal contour in the deployment phase, and shrinks the contour to output verified
+        coordinates so that the drone does not attempt to deploy directly against one of the dap's edges.
+        :param tl: Original top-left coordinate of contour.
+        :param tr: Original top-right coordinate of contour.
+        :param bl: Original bottom-left coordinate of contour.
+        :param br: Original bottom-right coordinate of contour.
+        :param gap_rect: The rect data (midpoint, width, height and theta) of the gap contour.
+        :param full_rect: The rect data (midpoint, width, height and theta) of the main object contour.
+        :return: List of verified coordinates for the drone to deploy the ground robot within.
+        """
 
         self.deploy_tl = tl
         self.deploy_tr = tr
@@ -504,6 +572,12 @@ class Viewer:
         return self.deployment_area_coordinates
 
     def scale_internal_contour(self, centre, dims):
+        """
+        Function used to verify the points of the internal contour for deployment.
+        :param centre: Centre point of internal contour.
+        :param dims: Width and height of internal contour.
+        :return: Scaled coordinates of corners of internal contour.
+        """
         c_x, c_y = centre
         c_x, c_y = int(c_x), int(c_y)
 
@@ -521,56 +595,19 @@ class Viewer:
 
         self.verify_deployment_area(points)
 
-        #print("Status: {} Coords: ({}), ({}), ({}), ({})".format(self.verified_deployment_area, tl, tr, bl, br))
-
         if self.verified_deployment_area == False:
             self.contour_shrink_sf -= 0.05
 
         return tl, tr, bl, br
 
-        #cv2.circle(self.bg_removed, tl, 3, (255, 255, 255), -1)
-        #cv2.circle(self.bg_removed, tr, 3, (255, 255, 255), -1)
-        #cv2.circle(self.bg_removed, bl, 3, (255, 255, 255), -1)
-        #cv2.circle(self.bg_removed, br, 3, (255, 255, 255), -1)
-
-    '''
-    def shrink_gap_boundaries(self, gap_box):
-        point_list = []
-        shrunk_points = []
-
-        pt1, pt2, pt3, pt4 = gap_box
-
-        point_list.append(pt1)
-        point_list.append(pt2)
-        point_list.append(pt3)
-        point_list.append(pt4)
-
-        #Sorted into order :TL, BL, TR, BR
-        sorted_point_list = sorted(point_list, key=operator.itemgetter(0, 1))
-
-        #Begin by shrinking square by 10%
-
-
-        #print("Original: {}".format(point_list))
-        #print("Sorted: {}".format(sorted_point_list))
-        self.times_shrunk = 0
-        shrunk_points = self.shrink_5(sorted_point_list)
-
-        while self.verified_deployment_area == False:
-            self.verify_deployment_area(shrunk_points)
-
-            shrunk_points = self.shrink_5(shrunk_points)
-
-        self.deployment_area_coordinates = shrunk_points
-
-        #print("Deployment Area Coordinates: {}".format(self.deployment_area_coordinates))
-
-        shrunk_points = np.int0(shrunk_points)
-
-        for point in shrunk_points:
-            cv2.circle(self.bg_removed, (point[0], point[1]), 3, (0, 0, 255))
-    '''
     def verify_deployment_area(self, shrunk_points):
+        """
+        Function to verify whether the edges of the internal contour cross any point of the surrounding support
+        structure. If the edges do cross the structure, the drone cannot deploy as it will collide with pillar.
+        If they do not, then there is a verified empty space for the drone to deploy the ground robot within.
+        :param shrunk_points: The shrunken inner contour of the gap.
+        :return: N/A
+        """
         tl, bl, tr, br = shrunk_points
 
         no_collisions = True
@@ -621,66 +658,14 @@ class Viewer:
         else:
             self.verified_deployment_area = False
 
-    '''
-    def shrink_5(self, sorted_points):
-
-        temp_points = []
-        temp_element = []
-        tuple_no = 0
-        element_no = 0
-
-        for tuple in sorted_points:
-            element_no = 0
-            temp_element = []
-            for element in tuple:
-                if tuple_no == 0:
-                    if element_no == 0:
-                        element += 10
-                    elif element_no == 1:
-                        element += 10
-                    else:
-                        break
-
-                elif tuple_no == 1:
-                    if element_no == 0:
-                        element += 10
-                    elif element_no == 1:
-                        element -= 10
-                    else:
-                        break
-
-                elif tuple_no == 2:
-                    if element_no == 0:
-                        element -= 10
-                    elif element_no == 1:
-                        element += 10
-                    else:
-                        break
-
-                elif tuple_no == 3:
-                    if element_no == 0:
-                        element -= 10
-                    elif element_no == 1:
-                        element -= 10
-                    else:
-                        break
-
-                else:
-                    break
-
-                temp_element.insert(element_no, element)
-                element_no += 1
-
-            temp_points.insert(tuple_no, temp_element)
-            tuple_no += 1
-
-        self.times_shrunk += 1
-        print(self.times_shrunk)
-        #print("Temp Points: {}".format(temp_points))
-
-        return temp_points
-    '''
     def separate_contours(self, contours, hierarchy):
+        """
+        Takes in the foll contour list, alongside heirarchy and separates these into internal and external contours.
+        :param contours: The full list of all detected contours in the colour image.
+        :param hierarchy: The hierarchy of the contours: i.e. If they are internal (having parent contours) or external
+                          (having no parent contours and being the initial of the group)/
+        :return: The separated internal and external contour data.
+        """
         # If hierarchy[0][i][3] == -1, the contour is external. Else, internal
         int_cnt = []
         ext_cnt = []
@@ -701,6 +686,14 @@ class Viewer:
         return int_cnt, ext_cnt
 
     def draw_roi(self, box, theta):
+        """
+        Draws a region of interest (ROI) above the pillar if no 'gap' is detected. Essentially detects the top edge
+        of the pillar.
+        :param box: The external contour box coordinates
+        :param theta: The angle of rotation of the box through the y-axis.
+        :return: Returns either coordinates of the ROI if it is a deployable area, or zeros if the drone cannot
+                 deploy here.
+        """
         b_l = box[0]
         t_l = box[1]
         t_r = box[2]
@@ -768,6 +761,13 @@ class Viewer:
         return 0,0,0,0,0,0,0,0
 
     def shift_line_y_t(self, point1, point2, avg_ty):
+        """
+        Shifts the top line of the internal gap contour in the nevative y direction.
+        :param point1: The first point of the internal gap contour top line.
+        :param point2: The second point of the internal gap contour top line.
+        :param avg_ty: The average of the y coordinate of the gap contour top line, and the outer contour top line.
+        :return: Returns two tuples of the shifted line coordinates.
+        """
         pt1_colour = self.get_colour(point1[0], point1[1])
         pt2_colour = self.get_colour(point2[0], point2[1])
 
@@ -784,6 +784,13 @@ class Viewer:
             return (pt1_x, pt1_y), (pt2_x, pt2_y)
 
     def shift_line_y_b(self, point1, point2, avg_by):
+        """
+        Shifts the bottom line of the internal gap contour in the positive y direction.
+        :param point1: The first point of the internal gap contour bottom line.
+        :param point2: The second point of the internal gap contour bottom line.
+        :param avg_by: The average of the y coordinate of the gap contour bottom line, and the outer contour bottom line.
+        :return: Returns two tuples of the shifted line coordinates.
+        """
         pt1_colour = self.get_colour(point1[0], point1[1])
         pt2_colour = self.get_colour(point2[0], point2[1])
 
@@ -800,6 +807,14 @@ class Viewer:
             return (pt1_x, pt1_y), (pt2_x, pt2_y)
 
     def shift_line_x_r(self, point1, point2, avg_rx):
+        """
+        Shifts the right hand line of the internal gap contour in the positive x direction.
+        :param point1: The first point of the internal gap contour right hand line.
+        :param point2: The second point of the internal gap contour right hand line.
+        :param avg_rx: The average of the x coordinate of the gap contour right hand line, and the outer contour
+                       right hand line.
+        :return: Returns two tuples of the shifted line coordinates.
+        """
         pt1_colour = self.get_colour(point1[0], point1[1])
         pt2_colour = self.get_colour(point2[0], point2[1])
 
@@ -816,6 +831,14 @@ class Viewer:
             return (pt1_x, pt1_y), (pt2_x, pt2_y)
 
     def shift_line_x_l(self, point1, point2, avg_lx):
+        """
+        Shifts the left hand line of the internal gap contour in the negative x direction.
+        :param point1: The first point of the internal gap contour left hand line.
+        :param point2: The second point of the internal gap contour left hand line.
+        :param avg_lx: The average of the x coordinate of the gap contour left hand line, and the outer contour
+                       left hand line.
+        :return: Returns two tuples of the shifted line coordinates.
+        """
         pt1_colour = self.get_colour(point1[0], point1[1])
         pt2_colour = self.get_colour(point2[0], point2[1])
 
@@ -832,6 +855,13 @@ class Viewer:
             return (pt1_x, pt1_y), (pt2_x, pt2_y)
 
     def deproj_to_pt(self, point1, point2):
+        """
+        Deprojects the pixel data into 3D point data with reference to the camera position. Used to find the distances
+        between pixels in millimetres.
+        :param point1: The first point of the line for which the distance is required to be measured.
+        :param point2: The second point of the line for which the distance is required to be measured.
+        :return: A list of the x, y and z distances between the two points in millimetres.
+        """
         pixel1 = [point1[0], point1[1]]
         pixel2 = [point2[0], point2[1]]
 
@@ -868,15 +898,14 @@ class Viewer:
         dy = math.sqrt(math.pow((y1 - y2), 2))
         dz = math.sqrt(math.pow((z1 - z2), 2))
 
-        #print(point1, pixel1)
-        #print(point2, pixel2)
-
-        #print("Dx: {}mm   Dy: {}mm  Dz: {}mm".format(dx, dy, dz))
-
         return [dx, dy, dz]
 
     def update(self):
-
+        """
+        Update function which runs all of the required functionality of the script and draws all required objects to
+        the screen.
+        :return: N/A
+        """
         frames = self.pipeline.wait_for_frames()
 
         # FRAME ALIGNMENT
@@ -964,6 +993,13 @@ class Viewer:
         self.images = np.hstack((self.bg_removed, self.colour_image))
 
     def get_x_dist(self, mid, wh, theta):
+        """
+        Function to get the direction that the drone is required to move in, only in the x-direction.
+        :param mid: Midpoint of the input contour.
+        :param wh: Width and height of the input contour.
+        :param theta: Angle of rotation through the object y-axis of the object.
+        :return: Direction of required movement of the drone and number of pixels required to be moved.
+        """
         w, h = wh
         if w > 20.:
             mid_x, mid_y = mid
@@ -987,112 +1023,14 @@ class Viewer:
 
             return dir, dx
 
-    def find_dead_space_with_bearings(self):
-        pass
-
-    def find_dead_space_flat(self, pt1, pt4):
-
-        # The following 8 lines of code ensure that the processed points will never be (0, 0).
-        # This works by:
-        # 1 - Initialise an array with 11 points before the loop starts.
-        # 2 - Work backwards through the array.
-        # 3 - If the most recent point in the array does not equal (0, 0) use these points.
-        # 4 - If the most recent point in the array equals (0, 0), work back until a non-zero point is found, and use that.
-
-        self.dead_points.append((pt1, pt4))
-        if len(self.dead_points) > 10:
-            for i in range(0, 10):
-                if self.dead_points[10 - i] != (0, 0):
-                    pt1 = self.dead_points[10 - i][0]
-                    pt4 = self.dead_points[10 - i][1]
-                    del (self.dead_points[0])
-                    break
-
-            # Redundancy check just to make sure that a (0, 0) point has not made it through the previous safety check.
-            if pt1 and pt4:
-
-                # Begin by defining the start and end x and y of the ROI as a square, contracted by 20 pixels.
-                roi_startx = pt1[0] + 20
-                roi_starty = pt1[1] + 20
-
-                roi_endx = pt4[0] - 20
-                roi_endy = pt4[1] - 20
-
-                # Initialise arrays to count the amount of pixels scanned, the amount of black pixels found, and an
-                # array to store the colours found.
-                pixels_scanned = 0
-                pixels_black = 0
-                colour_array = []
-
-                # Step through the defined ROI in increments of 4 to save processing time.
-                for _x in range(roi_startx, roi_endx,4):
-                    for _y in range(roi_starty, roi_endy,4):
-                        # Check the colour of the defined pixel, and append this into the colours array.
-                        BGR = self.get_colour(_x, _y)
-                        colour_array.append(BGR)
-
-                        # If the analysed pixel is black, increment the counter.
-                        if BGR == (0, 0, 0):
-                            pixels_black += 1
-
-                        # Increment the counter for the amount of pixels scanned every iteration of the loop.
-                        pixels_scanned += 1
-
-                # If every pixel that was scanned in the previous loop was a black pixel, the dead space has been found.
-                # If this is the case, print 'Dead Space' on the screen, and toggle the dead space boolean. Otherwise,
-                # make sure that the dead space boolean remains low, so as to not trigger the initial stages of deployment.
-                if pixels_scanned == pixels_black:
-                    cv2.putText(self.bg_removed, 'Dead Space', (roi_startx - 30, roi_starty - 40),
-                                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-                    self.dead_space = True
-                else:
-                    self.dead_space = False
-               # print("Dead Space Status: {}".format(self.dead_space))
-            #print("Top Left: {} \n Size: {} \n Theta: {}".format(top_left, size, theta))
-
-    def dead_space_detected(self):
-        return self.dead_space
-
-    def get_lr_boundaries(self):
-
-        lines = []
-
-        if self.line_l:
-            lines.append(self.line_l)
-        if self.line_r:
-            lines.append(self.line_r)
-
-        return lines
-
-    # Define a ROI above input line
-    def setROI(self, line):
-
-        x0 = int(line[0][0])
-        y0 = int(line[0][1])
-
-        x1 = int(line[1][0])
-        y1 = int(line[1][1])
-
-        cv2.rectangle(self.colour_image, (x0, y0 - 20), (x1, y1 - 100), (0, 255, 255), 2)
-        cv2.rectangle(self.bg_removed, (x1, y0 - 20), (x0, y1 - 100), (0, 255, 255), 2)
-
-        _y0 = y0 - 20
-        _y1 = y1 - 100
-
-        # Sort so that first tuple contains smallest numbers for for loop to run properly
-        if x0 < x1 and _y0 < _y1:
-            roi = ((x0, _y0), (x1, _y1))
-        elif x0 < x1 and _y1 < _y0:
-            roi = ((x0, _y1), (x1, _y0))
-        elif x1 < x0 and _y0 < _y1:
-            roi = ((x1, _y0), (x0, _y1))
-        else:
-            roi = ((x1, _y1), (x0, _y0))
-
-        return roi
-
     # Get BGR value of input coordinates
     def get_colour(self, x, y):
+        """
+        Function to get the BGR colour values at specified pixel.
+        :param x: X-coordinate of pixel.
+        :param y: Y-coordinate of pixel.
+        :return: Tuple containing (B, G, R) colour data (Blue, Green, Red).
+        """
 
         if y < 0:
             y = 0
@@ -1115,6 +1053,12 @@ class Viewer:
 
     # Generate Equation of lines in form a0x + b0y = c0 (1) & a1x + b1y = c1 (2)
     def get_line_eq(self, ln1, ln2):
+        """
+        Function to calculate the equation of the lines in form a0x + b0y = c0 (1) & a1x + b1y = c1 (2).
+        :param ln1: Line one coordinates.
+        :param ln2: Line two coorinates.
+        :return: a0, b0, c0, a1, b1, c1 of the two lines, to be used in the above format of equations (1) & (2).
+        """
 
         # Get X and Y point values from first line
         l1_x0 = ln1[0][0]
@@ -1151,6 +1095,12 @@ class Viewer:
 
     # Find intersection of two lines using Cramer's Rule
     def intersection(self, ln1, ln2):
+        """
+        Uses Cramer's Rule to find the intersection point of two lines.
+        :param ln1: Line one input.
+        :param ln2: Line two input.
+        :return: (x, y) intersection point of line one and line two.
+        """
 
         # Get X and Y point values from first line
         l1_x0 = ln1[0][0]
@@ -1202,6 +1152,13 @@ class Viewer:
 
     # Show the OpenCV Windows
     def show_window(self):
+        """
+        Function used to show the 'Realsense' window and the 'Edge' window
+        'Realsense' - Shows processed image with all drawn contours and eliminated background, next to the colourised
+                      depth stream.
+        'Edge' - Shows thresholded edge detection image.
+        :return: N/A
+        """
 
         cv2.namedWindow('RealSense', cv2.WINDOW_AUTOSIZE)
         cv2.imshow('RealSense', self.images)
