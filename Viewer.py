@@ -217,6 +217,15 @@ class Viewer:
                 cv2.line(self.bg_removed, (x1, y1), (x2, y2), (0, 255, 0), 2)
                 cv2.line(self.bg_removed, (x1, y1), (x1 + 100, y1), (0, 0, 255), 2)
 
+    def get_dist_to_pillar(self, rect):
+        midpoint, _, _ = rect
+
+        mid_x, mid_y = midpoint
+
+        dist = self.aligned_depth_frame.get_distance(int(mid_x), int(mid_y))/self.depth_scale
+
+        return dist
+
     def find_contours(self, edges):
         self.verified_deployment_area = False
         # Find the contours of the viewed object. 'cv2.RETR_EXTERNAL' specifies that only the external contour is to be used.
@@ -262,8 +271,17 @@ class Viewer:
                         square_gap = max(int_cnt, key=len)
 
                         contours_int = int_cnt
-                        self.internal_contour = True
-                        self.deployment_phase = True
+
+                        int_perim = cv2.arcLength(square_gap, True)
+
+                        if int_perim > 80.:
+
+                            self.internal_contour = True
+                            self.deployment_phase = True
+
+                        else:
+                            self.internal_contour = False
+                            self.deployment_phase = False
                     else:
                         square_gap = [0, 0, 0, 0]
                         contours_int = [[0, 0, 0, 0,], [0, 0, 0, 0,], [0, 0, 0, 0,], [0, 0, 0, 0,]]
@@ -286,8 +304,15 @@ class Viewer:
                                 square_gap = max(int_cnt, key=len)
 
                                 contours_int = int_cnt
-                                self.internal_contour = True
-                                self.deployment_phase = True
+
+                                int_perim = cv2.arcLength(square_gap, True)
+
+                                if int_perim > 80.:
+                                    self.internal_contour = True
+                                    self.deployment_phase = True
+                                else:
+                                    self.internal_contour = False
+                                    self.deployment_phase = False
                             else:
                                 square_gap = [0, 0, 0, 0]
                                 contours_int = [[0, 0, 0, 0,], [0, 0, 0, 0,], [0, 0, 0, 0,], [0, 0, 0, 0,]]
@@ -323,6 +348,13 @@ class Viewer:
 
                 box = cv2.boxPoints(rect)
                 box = np.int0(box)
+
+                if not self.deployment_phase:
+
+                    self.distance_from_pillar = self.get_dist_to_pillar(rect)
+                else:
+
+                    self.distance_from_pillar = 'NA'
 
                 mid, w_h, theta = rect
                 move_dir_lr = self.get_x_dist(mid, w_h, theta)
@@ -411,7 +443,7 @@ class Viewer:
         coords = (dx, dy)
 
         self.deployment_dir_to_move = {final_dir : coords}
-        print(self.deployment_dir_to_move)
+        #print(self.deployment_dir_to_move)
 
     def get_deployment_coords(self, tl, tr, bl, br, gap_rect, full_rect):
 
@@ -424,8 +456,8 @@ class Viewer:
 
         gap_mid, gap_wh, _ = gap_rect
         full_mid, full_wh, _ = full_rect
-        print("Gap Mid: {} Full Mid: {} ".format(gap_mid, full_mid))
-        print("Gap WH: {} Full WH: {}".format(gap_wh, full_wh))
+        #print("Gap Mid: {} Full Mid: {} ".format(gap_mid, full_mid))
+        #print("Gap WH: {} Full WH: {}".format(gap_wh, full_wh))
         gap_w, gap_h = gap_wh
         full_w, full_h = full_wh
 
@@ -444,9 +476,9 @@ class Viewer:
         avg_lx = math.sqrt(math.pow((gap_lx + full_lx), 2)) / 2
         avg_rx = math.sqrt(math.pow((gap_rx + full_rx), 2)) / 2
 
-        print("Averages: {} {} {} {}".format(avg_ty, avg_by, avg_lx, avg_rx))
+        #print("Averages: {} {} {} {}".format(avg_ty, avg_by, avg_lx, avg_rx))
 
-        print("Deployment Coords: {}".format(self.deployment_area_coordinates))
+        #print("Deployment Coords: {}".format(self.deployment_area_coordinates))
         #self.deployment_area_distances_mm[0].append(self.deployment_area_coordinates)
         shifted_top_1, shifted_top_2 = self.shift_line_y_t(tl, tr, int(avg_ty))
         d_top_mm = self.deproj_to_pt(shifted_top_1, shifted_top_2)
@@ -465,8 +497,8 @@ class Viewer:
 
         self.deployment_area_distances_mm = [avg_x_dist, avg_y_dist]
 
-        print(tl, tr, bl, br)
-        print("Top: {}  Bottom: {}  Left: {}    Right: {}".format(d_top_mm, d_btm_mm, d_left_mm, d_right_mm))
+        #print(tl, tr, bl, br)
+        #print("Top: {}  Bottom: {}  Left: {}    Right: {}".format(d_top_mm, d_btm_mm, d_left_mm, d_right_mm))
 
 
         return self.deployment_area_coordinates
@@ -489,7 +521,7 @@ class Viewer:
 
         self.verify_deployment_area(points)
 
-        print("Status: {} Coords: ({}), ({}), ({}), ({})".format(self.verified_deployment_area, tl, tr, bl, br))
+        #print("Status: {} Coords: ({}), ({}), ({}), ({})".format(self.verified_deployment_area, tl, tr, bl, br))
 
         if self.verified_deployment_area == False:
             self.contour_shrink_sf -= 0.05
@@ -741,12 +773,12 @@ class Viewer:
 
         pt1_x, pt2_x = point1[0], point2[0]
         pt1_y, pt2_y = point1[1], point2[1]
-        print("Original Coords: {}, {}".format(point1, point2))
+        #print("Original Coords: {}, {}".format(point1, point2))
         if pt1_colour == (0, 0, 0) or pt2_colour == (0, 0, 0):
             pt1_y = avg_ty
             pt2_y = avg_ty
 
-            print("Shifted Coords: {}, {}".format((pt1_x, pt1_y), (pt2_x, pt2_y)))
+            #print("Shifted Coords: {}, {}".format((pt1_x, pt1_y), (pt2_x, pt2_y)))
             return (pt1_x, pt1_y), (pt2_x, pt2_y)
         else:
             return (pt1_x, pt1_y), (pt2_x, pt2_y)
@@ -757,12 +789,12 @@ class Viewer:
 
         pt1_x, pt2_x = point1[0], point2[0]
         pt1_y, pt2_y = point1[1], point2[1]
-        print("Original Coords: {}, {}".format(point1, point2))
+        #print("Original Coords: {}, {}".format(point1, point2))
         if pt1_colour == (0, 0, 0) or pt2_colour == (0, 0, 0):
             pt1_y = avg_by
             pt2_y = avg_by
 
-            print("Shifted Coords: {}, {}".format((pt1_x, pt1_y), (pt2_x, pt2_y)))
+            #print("Shifted Coords: {}, {}".format((pt1_x, pt1_y), (pt2_x, pt2_y)))
             return (pt1_x, pt1_y), (pt2_x, pt2_y)
         else:
             return (pt1_x, pt1_y), (pt2_x, pt2_y)
@@ -773,12 +805,12 @@ class Viewer:
 
         pt1_x, pt2_x = point1[0], point2[0]
         pt1_y, pt2_y = point1[1], point2[1]
-        print("Original Coords: {}, {}".format(point1, point2))
+        #print("Original Coords: {}, {}".format(point1, point2))
         if pt1_colour == (0, 0, 0) or pt2_colour == (0, 0, 0):
             pt1_x = avg_rx
             pt2_x = avg_rx
 
-            print("Shifted Coords: {}, {}".format((pt1_x, pt1_y), (pt2_x, pt2_y)))
+            #print("Shifted Coords: {}, {}".format((pt1_x, pt1_y), (pt2_x, pt2_y)))
             return (pt1_x, pt1_y), (pt2_x, pt2_y)
         else:
             return (pt1_x, pt1_y), (pt2_x, pt2_y)
@@ -789,20 +821,39 @@ class Viewer:
 
         pt1_x, pt2_x = point1[0], point2[0]
         pt1_y, pt2_y = point1[1], point2[1]
-        print("Original Coords: {}, {}".format(point1, point2))
+        #print("Original Coords: {}, {}".format(point1, point2))
         if pt1_colour == (0, 0, 0) or pt2_colour == (0, 0, 0):
             pt1_x = avg_lx
             pt2_x = avg_lx
 
-            print("Shifted Coords: {}, {}".format((pt1_x, pt1_y), (pt2_x, pt2_y)))
+            #print("Shifted Coords: {}, {}".format((pt1_x, pt1_y), (pt2_x, pt2_y)))
             return (pt1_x, pt1_y), (pt2_x, pt2_y)
         else:
             return (pt1_x, pt1_y), (pt2_x, pt2_y)
 
-
     def deproj_to_pt(self, point1, point2):
         pixel1 = [point1[0], point1[1]]
         pixel2 = [point2[0], point2[1]]
+
+        if point1[0] <= 0:
+            pixel1[0] = 1
+        if point1[0] >= 848:
+            pixel1[0] = 847
+
+        if point2[0] <= 0:
+            pixel2[0] = 1
+        if point2[0] >= 848:
+            pixel2[0] = 847
+
+        if point1[1] <= 0:
+            pixel1[1] = 1
+        if point1[1] >= 480:
+            pixel1[1] = 479
+
+        if point2[1] <= 0:
+            pixel2[1] = 1
+        if point2[1] >= 480:
+            pixel2[1] = 479
 
         point1 = rs.rs2_deproject_pixel_to_point(self.depth_intrin, pixel1, self.aligned_depth_frame.get_distance(pixel1[0], pixel1[1])/self.depth_scale)
         point2 = rs.rs2_deproject_pixel_to_point(self.depth_intrin, pixel2, self.aligned_depth_frame.get_distance(pixel2[0], pixel2[1])/self.depth_scale)
@@ -817,10 +868,10 @@ class Viewer:
         dy = math.sqrt(math.pow((y1 - y2), 2))
         dz = math.sqrt(math.pow((z1 - z2), 2))
 
-        print(point1, pixel1)
-        print(point2, pixel2)
+        #print(point1, pixel1)
+        #print(point2, pixel2)
 
-        print("Dx: {}mm   Dy: {}mm  Dz: {}mm".format(dx, dy, dz))
+        #print("Dx: {}mm   Dy: {}mm  Dz: {}mm".format(dx, dy, dz))
 
         return [dx, dy, dz]
 
