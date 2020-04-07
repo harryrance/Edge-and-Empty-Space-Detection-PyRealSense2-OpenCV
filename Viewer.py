@@ -1,5 +1,8 @@
-#Class for the realsense image processing
-##@package pyexample
+"""viewer.py
+==============================================================================================================
+Core module of the project - processes all image and depth data to provide required outputs for drone control.
+
+Harry Rance 07/04/2020."""
 
 import sys
 
@@ -16,82 +19,101 @@ from statistics import mean
 
 
 class Viewer:
-    """
-    Class for the Realsense Viewer
-    """
+    """Class for the Realsense Viewer"""
     def __init__(self):
-        """
-        Contructor Function.
-        """
+        """Contructor Function."""
+        ## PyRealsense Object Initialiser.
         self.pipeline = rs.pipeline()
         config = rs.config()
+
+        ## Global integer for screen width (default=848 pixels)
         self.screen_width = 848
+        ## Global integer for screen height (default=480 pixels)
         self.screen_height = 480
         config.enable_stream(rs.stream.depth, self.screen_width, self.screen_height, rs.format.z16, 30)
         config.enable_stream(rs.stream.color, self.screen_width, self.screen_height, rs.format.bgr8, 30)
 
+        ## Initialises the profile for the depth and colour streams.
         self.profile = self.pipeline.start(config)
 
         align_to = rs.stream.color
+        ## Alignment object to align the depth stream with colour stream
         self.align = rs.align(align_to)
 
+        ## Initialise colouriser for depth stream.
         self.colouriser = rs.colorizer()
+        ## Initialise decimation filter object.
         self.decimation = rs.decimation_filter()
+        ## Initialise spatial filter object.
         self.spatial = rs.spatial_filter()
+        ## Initialise temporal filter object.
         self.temporal = rs.temporal_filter()
+        ## Initialise hole filling filter object.
         self.hole_filling = rs.hole_filling_filter()
+        ## Transform depth stream to disparity map.
         self.depth_to_disparity = rs.disparity_transform(True)
+        ## Transform disparity map to depth stream.
         self.disparity_to_depth = rs.disparity_transform(False)
 
         depth_sensor = self.profile.get_device().first_depth_sensor()
+        ## Initialise depth scale object for converting raw distances into different units (default=millimetres.)
         self.depth_scale = depth_sensor.get_depth_scale()
-
-        #Points array for finding dead space
-        self.dead_points = []
-        #Contours array for setting contour
+        ## List containing all of the active contours, used to verify whether or not the contours are usable.
         self.active_contours = []
-
-        # Change this to change how much BG is removed initially
         clipping_dist_m = 5
+        ## Initialise clipping distance with use of depth scale. Used to eliminate background from image.
         self.clipping_dist = clipping_dist_m / self.depth_scale
-
-        ### INITIALISE FLIGHT CONTROLL VARIABLES ###
-
-        self.dead_space = False
-        self.pillar_detected = False
-
+        ## Boolean - used to identify whether or not the deployment area is safe and deployable.
         self.verified_deployment_area = False
+        ## Boolean - used to identify whether or not the drone is in the deployment phase.
         self.deployment_phase = False
 
+        ## Dict containing key: movement direction, value: movement distance (pixels). For flight phase.
         self.pre_deploy_dir = {}
+        ## String containing directions to move.
         self.direction_to_move = ''
+        ## Float value containing distance to move.
         self.distance_to_move = 0
+        ## Float value containing distance from 'pillar'.
         self.distance_from_pillar = 0.
 
+        ## List containing tuples of deployment area coordinates.
         self.deployment_area_coordinates = []
+        ## Dict containing key: movement direction, value: movement distance (millimetres). For deployment phase.
         self.deployment_dir_to_move = {}
 
+        ## Boolean - identifies if the internal contour is active.
         self.internal_contour = False
+        ## Boolean - identifies if the external contour is active.
         self.external_contour = False
 
+        ## Float value containing scale factor to shrink deployment area by.
         self.contour_shrink_sf = 1.
 
+        ## Tuple containing coordinates of top left corner of deployment area.
         self.deploy_tl = (0, 0)
+        ## Tuple containing coordinates of top right corner of deployment area.
         self.deploy_tr = (0, 0)
+        ## Tuple containing coordinates of bottom left corner of deployment area.
         self.deploy_bl = (0, 0)
+        ## Tuple containing coordinates of bottom right corner of deployment area.
         self.deploy_br = (0, 0)
 
+        ## List containing the width and height of deployment area in millimetres.
         self.deployment_area_distances_mm = []
 
     def adapt_depth_clipping(self, depth_image):
-        """
-        Function to implement adaptive depth clipping. Takes in the nearest object's depth and eliminated background
-        behind this with a 20% tolerance.
+        """Function to implement adaptive depth clipping.
+        Takes in the nearest object's depth and eliminated background behind this with a 20% tolerance.
 
-        :param depth_image: The image data of the depth stream from the Realsense camera.
-
-        :return: The distance of the closes object (+20%) tolerance in metres.
-        """
+        Parameters
+        ----------
+            depth_image:
+                The image data of the depth stream from the Realsense camera.
+        Returns
+        -------
+            closest_object_tol:
+                The distance of the closes object (+20%) tolerance in metres."""
         e1 = cv2.getTickCount()
         # Define X and Y bounds to check depth in (search middle third). Keep as round numbers so that steps of 2, 5 or 10 can be used
         _xmin = 0
@@ -118,17 +140,21 @@ class Viewer:
 
         e2 = cv2.getTickCount()
         time1 = (e2 - e1) / cv2.getTickFrequency()
-        #print("Adapt Depth Clipping: {}".format(time1))
-
         return closest_obj_tol
 
     def get_move_dir(self, lr_dir):
-        """
-        Function to get the movement direction in the drone's flight phase.
+        """ Function to get the movement direction in the drone's flight phase.
+        Takes input directions and outputs readable control commands.
 
-        :param lr_dir: Move left, right or centred command received from the get_x_dist() function.
-        :return: Dictionary containing key: direction for the drone to move, value: number of pixels away from centre.
-        """
+        Parameters
+        ----------
+            lr_dir:
+                Move left, right or centred command received from the get_x_dist() function.
+        Returns
+        -------
+            self.pre_deploy_dir:
+                Dictionary containing key: direction for the drone to move, value: number of pixels away from centre."""
+
         drone_dir = ' '
         #print("LR DIR: {}".format(lr_dir))
         if lr_dir is not None:
@@ -143,50 +169,36 @@ class Viewer:
 
             self.pre_deploy_dir = {drone_dir : lr_dir[1]}
 
-    def do_nothing(self):
-        pass
-
     def get_drone_control(self):
-        """
-        Function to get the drone control commands, dependent on the flight phase - either flying, or deploying.
-        :return: Returns the pre-deployment direction if in flight phase, and the deployment direction if in
-                 deployment phase.
-        """
+        """ Function to get the drone control commands, dependent on the flight phase - either flying, or deploying.
+        Outputs the direction in which the drone needs to move, dependent on the phase of flight.
+
+        Returns
+        -------
+            self.pre_deploy_dir:
+                Dictionary containing key: direction for the drone to move, value: number of pixels away from centre.
+
+            self.deployment_dir_to_move:
+                Deployment direction if in deployment phase."""
 
         if not self.deployment_phase:
             return self.pre_deploy_dir
         else:
             return self.deployment_dir_to_move
 
-    # Filter the depth image to remove a bit of noise/fill holes etc [CURRENTLY REDUNDANT]
-    def filter_depth(self, d_frame):
-        #e1 = cv2.getTickCount()
-        frame = d_frame
-
-        #self.decimation.set_option(rs.option.filter_magnitude, 1)
-
-        #self.spatial.set_option(rs.option.filter_magnitude, 5)
-        #self.spatial.set_option(rs.option.filter_smooth_alpha, 1)
-        #self.spatial.set_option(rs.option.filter_smooth_delta, 50)
-
-        #frame = self.decimation.process(frame)
-        #frame = self.depth_to_disparity.process(frame)
-        #frame = self.spatial.process(frame)
-        #frame = self.disparity_to_depth.process(frame)
-        #frame = self.hole_filling.process(frame)
-        #frame = frame.as_depth_frame()
-        #e2 = cv2.getTickCount()
-        #time1 = (e2 - e1) / cv2.getTickFrequency()
-        #print("Filter Depth: {}".format(time1))
-        return frame
-
     # Detect edges in the image [CHECK THRESHOLDS]
     def canny_edge(self, image):
-        """
-        Function to find the edges of the object in the clipped colour image.
-        :param image: The colour image data to be processed.
-        :return: The edge data to be used in subsequent processing functions.
-        """
+        """ Function to process the colour image.
+        Takes in colour image data and outputs image edge data, in a BW thresholded format.
+
+        Parameters
+        ----------
+            image:
+               The colour image data to be processed.
+        Returns
+        -------
+            edges:
+                The edge data to be used in subsequent processing functions."""
 
         # Convert image to greyscale format from BG
         image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -208,11 +220,13 @@ class Viewer:
         return edges
     # Function used to find the orientation of the target with respect to the camera's coordinate space
     def check_z_orientation(self, centre):
-        """
-        Function to check the orientation about the Z axis of the object being viewed.
-        :param centre: Centre point of the contour of the object.
-        :return: N/A
-        """
+        """ Function to check the orientation about the Z axis of the object being viewed.
+        Outputs a visual of the orientation of the object relative to the horizontal.
+
+        Parameters
+        ----------
+            centre:
+                Centre point of the contour of the object."""
 
         # Pass in the centre point of the object, and create a left and right point with respect to an x offset
         offset = 30
@@ -254,12 +268,18 @@ class Viewer:
                 cv2.line(self.bg_removed, (x1, y1), (x1 + 100, y1), (0, 0, 255), 2)
 
     def get_dist_to_pillar(self, rect):
-        """
-        Get the distance between the Realsense camera and the 'bridge support pillar'.
-        :param rect: List containing the centre point of the contour, the height and width of the contour, and the
-                     angle of rotation through the y-axis (into/out of the screen).
-        :return: Distance to the viewed object in millimetres.
-        """
+        """ Get the distance between the Realsense camera and the 'bridge support pillar'.
+        Outputs the distance to the target in millimetres.
+
+        Parameters
+        ----------
+            rect:
+                List containing the centre point of the contour, the height and width of the contour, and the angle of rotation through the y-axis (into/out of the screen).
+        Returns
+        -------
+            dist:
+                Distance to the viewed object in millimetres."""
+
         midpoint, _, _ = rect
 
         mid_x, mid_y = midpoint
@@ -269,15 +289,23 @@ class Viewer:
         return dist
 
     def find_contours(self, edges):
-        """
-        Function used to find the contours of the object being viewed. Contains operations to calculate the outer
+        """ Function used to find the contours of the object being viewed. Contains operations to calculate the outer
         contour and inner contour, and also draws the contours on the screen, and processes contour data to output
         multiple variables, including the deployment phase and some movement directions.
-        :param edges: The edge data from the canny_edge() function.
-        :return: Either returns the outer contour box and rect, along with the internal contour data if the contours
-                 are detected and verified to be correct, or 'false contour' data - arrays filled with zeros, if the
-                 contour data is not able to be processed properly.
-        """
+
+        Parameters
+        ----------
+            edges:
+               The edge data from the canny_edge() function.
+        Returns
+        -------
+            box:
+                Box object containing coordinates of the four corners of the bounding contour box.
+            rect:
+                List containing the centre point of the contour, the height and width of the contour, and the angle of rotation through the y-axis (into/out of the screen).
+            contours_int:
+                Contours object containing all internal contour data."""
+
         self.verified_deployment_area = False
         # Find the contours of the viewed object. 'cv2.RETR_EXTERNAL' specifies that only the external contour is to be used.
         im = cv2.cvtColor(self.bg_removed, cv2.COLOR_BGR2GRAY)
@@ -466,12 +494,16 @@ class Viewer:
         return 0, 0, false_return
 
     def get_deployment_dir_to_move(self, c_x, c_y):
-        """
-        Gets the direction for the drone to move in the deployment phase.
-        :param c_x: Centre point x coordinate of the internal (gap) contour.
-        :param c_y: Centre point y coordinate of the internal (gap) contour.
-        :return: N/A
-        """
+        """ Gets the direction for the drone to move in the deployment phase.
+        Outputs a Dict object with {direction to move : coordinates of movement}
+
+        Parameters
+        ----------
+            c_x:
+                Centre point x coordinate of the internal (gap) contour.
+            c_y:
+                Centre point y coordinate of the internal (gap) contour."""
+
         s_c_x, s_c_y = (int(self.screen_width/2), int(self.screen_height/2))
 
         c_x, c_y = int(c_x), int(c_y)
@@ -503,17 +535,28 @@ class Viewer:
         #print(self.deployment_dir_to_move)
 
     def get_deployment_coords(self, tl, tr, bl, br, gap_rect, full_rect):
-        """
-        Gets the coordinates of the internal contour in the deployment phase, and shrinks the contour to output verified
-        coordinates so that the drone does not attempt to deploy directly against one of the dap's edges.
-        :param tl: Original top-left coordinate of contour.
-        :param tr: Original top-right coordinate of contour.
-        :param bl: Original bottom-left coordinate of contour.
-        :param br: Original bottom-right coordinate of contour.
-        :param gap_rect: The rect data (midpoint, width, height and theta) of the gap contour.
-        :param full_rect: The rect data (midpoint, width, height and theta) of the main object contour.
-        :return: List of verified coordinates for the drone to deploy the ground robot within.
-        """
+        """ Gets the coordinates of the internal contour in the deployment phase.
+        Shrinks the contour to output verified coordinates so that the drone does not attempt to deploy directly against one of the dap's edges.
+
+        Parameters
+        ----------
+            tl:
+                Original top-left coordinate of contour.
+            tr:
+                Original top-right coordinate of contour.
+            bl:
+                Original bottom-left coordinate of contour.
+            br:
+                Original bottom-right coordinate of contour.
+            gap_rect:
+                The rect data (midpoint, width, height and theta) of the gap contour.
+            full_rect:
+                The rect data (midpoint, width, height and theta) of the main object contour.
+
+        Returns
+        -------
+            self.deployment_area_coordinates:
+                List of verified coordinates for the drone to deploy the ground robot within."""
 
         self.deploy_tl = tl
         self.deploy_tr = tr
@@ -568,16 +611,30 @@ class Viewer:
         #print(tl, tr, bl, br)
         #print("Top: {}  Bottom: {}  Left: {}    Right: {}".format(d_top_mm, d_btm_mm, d_left_mm, d_right_mm))
 
-
         return self.deployment_area_coordinates
 
     def scale_internal_contour(self, centre, dims):
-        """
-        Function used to verify the points of the internal contour for deployment.
-        :param centre: Centre point of internal contour.
-        :param dims: Width and height of internal contour.
-        :return: Scaled coordinates of corners of internal contour.
-        """
+        """ Function used to verify the points of the internal contour for deployment.
+        Scales contour with respect to whether or not it is verified as a proper area of deployment.
+
+        Parameters
+        ----------
+            centre:
+                Centre point of internal contour.
+            dims:
+                Width and height of internal contour.
+
+        Returns
+        -------
+            tl:
+                Scaled top-left coordinate.
+            tr:
+                Scaled top-right coordinate.
+            bl:
+                Scaled bottom-left coordinate.
+            br:
+                Scaled bottom-right coordinate"""
+
         c_x, c_y = centre
         c_x, c_y = int(c_x), int(c_y)
 
@@ -601,13 +658,15 @@ class Viewer:
         return tl, tr, bl, br
 
     def verify_deployment_area(self, shrunk_points):
-        """
-        Function to verify whether the edges of the internal contour cross any point of the surrounding support
+        """ Function to verify whether the edges of the internal contour cross any point of the surrounding support
         structure. If the edges do cross the structure, the drone cannot deploy as it will collide with pillar.
         If they do not, then there is a verified empty space for the drone to deploy the ground robot within.
-        :param shrunk_points: The shrunken inner contour of the gap.
-        :return: N/A
-        """
+
+        Parameters
+        ----------
+            shrunk_points:
+                The shrunken inner contour of the gap."""
+
         tl, bl, tr, br = shrunk_points
 
         no_collisions = True
@@ -659,13 +718,24 @@ class Viewer:
             self.verified_deployment_area = False
 
     def separate_contours(self, contours, hierarchy):
-        """
-        Takes in the foll contour list, alongside heirarchy and separates these into internal and external contours.
-        :param contours: The full list of all detected contours in the colour image.
-        :param hierarchy: The hierarchy of the contours: i.e. If they are internal (having parent contours) or external
-                          (having no parent contours and being the initial of the group)/
-        :return: The separated internal and external contour data.
-        """
+        """ Takes in the full contour list, alongside heirarchy and separates these into internal and external contours.
+        Outputs independedt internal and external contour lists.
+
+        Parameters
+        ----------
+            contours:
+                The full list of all detected contours in the colour image.
+            hierarchy:
+                The hierarchy of the contours: i.e. If they are internal (having parent contours) or external
+                      (having no parent contours and being the initial of the group).
+
+        Returns
+        -------
+            int_cnt:
+                Internal contour list.
+            ext_cnt:
+                External contour list."""
+
         # If hierarchy[0][i][3] == -1, the contour is external. Else, internal
         int_cnt = []
         ext_cnt = []
@@ -686,14 +756,21 @@ class Viewer:
         return int_cnt, ext_cnt
 
     def draw_roi(self, box, theta):
-        """
-        Draws a region of interest (ROI) above the pillar if no 'gap' is detected. Essentially detects the top edge
-        of the pillar.
-        :param box: The external contour box coordinates
-        :param theta: The angle of rotation of the box through the y-axis.
-        :return: Returns either coordinates of the ROI if it is a deployable area, or zeros if the drone cannot
-                 deploy here.
-        """
+        """ Draws a region of interest (ROI) above the pillar if no 'gap' is detected.
+        Essentially detects the top edge of the pillar.
+
+        Parameters
+        ----------
+            box:
+                The external contour box coordinates
+            theta:
+                The angle of rotation of the box through the y-axis.
+
+        Returns
+        -------
+            [t_l_, t_r_, p_l, p_r, t_l, t_r, b_l, b_r]:
+                A list of the deployable coordinates, given that the ROI is a verified deployment area."""
+
         b_l = box[0]
         t_l = box[1]
         t_r = box[2]
@@ -761,13 +838,23 @@ class Viewer:
         return 0,0,0,0,0,0,0,0
 
     def shift_line_y_t(self, point1, point2, avg_ty):
-        """
-        Shifts the top line of the internal gap contour in the nevative y direction.
-        :param point1: The first point of the internal gap contour top line.
-        :param point2: The second point of the internal gap contour top line.
-        :param avg_ty: The average of the y coordinate of the gap contour top line, and the outer contour top line.
-        :return: Returns two tuples of the shifted line coordinates.
-        """
+        """ Shifts the top line of the internal gap contour in the nevative y direction.
+        Outputs a set of shifted coordinates.
+
+        Parameters
+        ----------
+            point1:
+                The first point of the internal gap contour top line.
+            point2:
+                The second point of the internal gap contour top line.
+
+        Returns
+        -------
+            (pt1_x, pt1_y):
+                Tuple containing x and y coordinates of shifted point 1.
+            (pt2_x, pt2_y):
+                Tuple containing x and y coordinates of shifted point 2."""
+
         pt1_colour = self.get_colour(point1[0], point1[1])
         pt2_colour = self.get_colour(point2[0], point2[1])
 
@@ -784,13 +871,23 @@ class Viewer:
             return (pt1_x, pt1_y), (pt2_x, pt2_y)
 
     def shift_line_y_b(self, point1, point2, avg_by):
-        """
-        Shifts the bottom line of the internal gap contour in the positive y direction.
-        :param point1: The first point of the internal gap contour bottom line.
-        :param point2: The second point of the internal gap contour bottom line.
-        :param avg_by: The average of the y coordinate of the gap contour bottom line, and the outer contour bottom line.
-        :return: Returns two tuples of the shifted line coordinates.
-        """
+        """ Shifts the bottom line of the internal gap contour in the positive y direction.
+        Outputs a set of shifted coordinates.
+
+        Parameters
+        ----------
+            point1:
+                The first point of the internal gap contour bottom line.
+            point2:
+                The second point of the internal gap contour bottom line.
+
+        Returns
+        -------
+            (pt1_x, pt1_y):
+                Tuple containing x and y coordinates of shifted point 1.
+            (pt2_x, pt2_y):
+                Tuple containing x and y coordinates of shifted point 2."""
+
         pt1_colour = self.get_colour(point1[0], point1[1])
         pt2_colour = self.get_colour(point2[0], point2[1])
 
@@ -807,14 +904,23 @@ class Viewer:
             return (pt1_x, pt1_y), (pt2_x, pt2_y)
 
     def shift_line_x_r(self, point1, point2, avg_rx):
-        """
-        Shifts the right hand line of the internal gap contour in the positive x direction.
-        :param point1: The first point of the internal gap contour right hand line.
-        :param point2: The second point of the internal gap contour right hand line.
-        :param avg_rx: The average of the x coordinate of the gap contour right hand line, and the outer contour
-                       right hand line.
-        :return: Returns two tuples of the shifted line coordinates.
-        """
+        """ Shifts the right hand line of the internal gap contour in the positive x direction.
+        Outputs a set of shifted coordinates.
+
+        Parameters
+        ----------
+            point1:
+                The first point of the internal gap contour right hand line.
+            point2:
+                The second point of the internal gap contour right hand line.
+
+        Returns
+        -------
+            (pt1_x, pt1_y):
+                Tuple containing x and y coordinates of shifted point 1.
+            (pt2_x, pt2_y):
+                Tuple containing x and y coordinates of shifted point 2."""
+
         pt1_colour = self.get_colour(point1[0], point1[1])
         pt2_colour = self.get_colour(point2[0], point2[1])
 
@@ -831,14 +937,23 @@ class Viewer:
             return (pt1_x, pt1_y), (pt2_x, pt2_y)
 
     def shift_line_x_l(self, point1, point2, avg_lx):
-        """
-        Shifts the left hand line of the internal gap contour in the negative x direction.
-        :param point1: The first point of the internal gap contour left hand line.
-        :param point2: The second point of the internal gap contour left hand line.
-        :param avg_lx: The average of the x coordinate of the gap contour left hand line, and the outer contour
-                       left hand line.
-        :return: Returns two tuples of the shifted line coordinates.
-        """
+        """ Shifts the left hand line of the internal gap contour in the nevative x direction.
+        Outputs a set of shifted coordinates.
+
+        Parameters
+        ----------
+            point1:
+                The first point of the internal gap contour left hand line.
+            point2:
+                The second point of the internal gap contour left hand line.
+
+        Returns
+        -------
+            (pt1_x, pt1_y):
+                Tuple containing x and y coordinates of shifted point 1.
+            (pt2_x, pt2_y):
+                Tuple containing x and y coordinates of shifted point 2."""
+
         pt1_colour = self.get_colour(point1[0], point1[1])
         pt2_colour = self.get_colour(point2[0], point2[1])
 
@@ -855,13 +970,21 @@ class Viewer:
             return (pt1_x, pt1_y), (pt2_x, pt2_y)
 
     def deproj_to_pt(self, point1, point2):
-        """
-        Deprojects the pixel data into 3D point data with reference to the camera position. Used to find the distances
-        between pixels in millimetres.
-        :param point1: The first point of the line for which the distance is required to be measured.
-        :param point2: The second point of the line for which the distance is required to be measured.
-        :return: A list of the x, y and z distances between the two points in millimetres.
-        """
+        """ Deprojects the pixel data into 3D point data with reference to the camera position.
+        Used to find the distances between pixels in millimetres.
+
+        Parameters
+        ----------
+            point1:
+                The first point of the line for which the distance is required to be measured.
+            point2:
+                The second point of the line for which the distance is required to be measured.
+
+        Returns
+        -------
+            [dx, dy, dz]:
+                A list of the x, y and z distances between the two points in millimetres."""
+
         pixel1 = [point1[0], point1[1]]
         pixel2 = [point2[0], point2[1]]
 
@@ -901,26 +1024,26 @@ class Viewer:
         return [dx, dy, dz]
 
     def update(self):
-        """
-        Update function which runs all of the required functionality of the script and draws all required objects to
-        the screen.
-        :return: N/A
-        """
+        """ Update function which runs all of the required functionality of the script and draws all required objects to the screen.
+        Called every time the screen updates."""
+
         frames = self.pipeline.wait_for_frames()
 
         # FRAME ALIGNMENT
         aligned_frames = self.align.process(frames)
-
+        ## Object containing depth frame data of the aligned depth frame (aligned with colour frame).
         self.aligned_depth_frame = aligned_frames.get_depth_frame()
+        ## Object containing colour frame data.
         self.colour_frame = aligned_frames.get_color_frame()
 
         # FILTER THE DEPTH FRAME
-        #filtered_depth_frame = self.filter_depth(aligned_depth_frame)
+        #filtered_depth_frame = self.filter_depth(aligned_depth_frame).
         filtered_depth_frame = self.aligned_depth_frame
         filtered_depth_image = np.asanyarray(filtered_depth_frame.get_data())
 
+        ## Array containing the depth frame data, after being filtered and colourised for viewability.
         self.colourised_filtered_depth = np.asanyarray(self.colouriser.colorize(filtered_depth_frame).get_data())
-
+        ## NumPy array containing colour image data.
         self.colour_image = np.asanyarray(self.colour_frame.get_data())
 
         # Change this to change how much BG is removed ADAPTIVE
@@ -931,19 +1054,23 @@ class Viewer:
         self.clipping_dist = clipping_dist_m / self.depth_scale
 
         # Get Intrinsic depth and colour
+        ## Object containing intrinsic depth data used to calculate pixel-to-pixel distances in real-world units.
         self.depth_intrin = self.aligned_depth_frame.profile.as_video_stream_profile().intrinsics
+        ## Object containing intrinsic colour data used to calculate pixel-to-pixel distances in real-world units.
         self.colour_intrin = self.colour_frame.profile.as_video_stream_profile().intrinsics
-
+        ## Object containing data with respect to extrinsics of colour data cast to depth data.
         self.depth_colour_extrin = self.aligned_depth_frame.profile.get_extrinsics_to(self.colour_frame.profile)
 
 
         # REMOVE BACKGROUND
         grey_colour = 0
         depth_image_3d = np.dstack((filtered_depth_image, filtered_depth_image, filtered_depth_image))
+        ## Image object that all objects are drawn on. Background is removed using self.clipping_dist and aligned depth/
         self.bg_removed = np.where((depth_image_3d > self.clipping_dist) | (depth_image_3d <= 0), grey_colour,
                                    self.colour_image)
 
         # DETECT EDGES
+        ## Array object containing thresholded edge frame.
         self.edges = self.canny_edge(self.bg_removed)
         box, rect, internal_contours = self.find_contours(self.edges)
         temp_array = [[0, 0, 0, 0,], [0, 0, 0, 0,], [0, 0, 0, 0,], [0, 0, 0, 0,]]
@@ -989,17 +1116,29 @@ class Viewer:
                         BGR = self.get_colour(x, y)
                         if BGR == (0, 0, 0):
                             black_space.append((x, y))
-
+        ## Stack of the self.bg_removed image and self.colour_image.
         self.images = np.hstack((self.bg_removed, self.colour_image))
 
     def get_x_dist(self, mid, wh, theta):
-        """
-        Function to get the direction that the drone is required to move in, only in the x-direction.
-        :param mid: Midpoint of the input contour.
-        :param wh: Width and height of the input contour.
-        :param theta: Angle of rotation through the object y-axis of the object.
-        :return: Direction of required movement of the drone and number of pixels required to be moved.
-        """
+        """ Function to get the direction that the drone is required to move in, only in the x-direction.
+        Outputs the direction and distance in pixels to move.
+
+        Parameters
+        ----------
+            mid:
+                Midpoint of the input contour.
+            wh:
+                Width and height of the input contour.
+            theta:
+                Angle of rotation through the object y-axis of the object.
+
+        Returns
+        -------
+            dir:
+                Direction of required movement of the drone.
+            dx:
+                Number of pixels required to be moved."""
+
         w, h = wh
         if w > 20.:
             mid_x, mid_y = mid
@@ -1025,12 +1164,20 @@ class Viewer:
 
     # Get BGR value of input coordinates
     def get_colour(self, x, y):
-        """
-        Function to get the BGR colour values at specified pixel.
-        :param x: X-coordinate of pixel.
-        :param y: Y-coordinate of pixel.
-        :return: Tuple containing (B, G, R) colour data (Blue, Green, Red).
-        """
+        """ Function to get the BGR colour values at specified pixel.
+        (0, 0, 0) corresponds to an inactive pixel.
+
+        Parameters
+        ----------
+            x:
+                X-coordinate of pixel.
+            y:
+                Y-coordinate of pixel.
+
+        Returns
+        -------
+            (B, G, R):
+                Tuple containing (B, G, R) colour data (Blue, Green, Red), between 0 and 255."""
 
         if y < 0:
             y = 0
@@ -1053,12 +1200,20 @@ class Viewer:
 
     # Generate Equation of lines in form a0x + b0y = c0 (1) & a1x + b1y = c1 (2)
     def get_line_eq(self, ln1, ln2):
-        """
-        Function to calculate the equation of the lines in form a0x + b0y = c0 (1) & a1x + b1y = c1 (2).
-        :param ln1: Line one coordinates.
-        :param ln2: Line two coorinates.
-        :return: a0, b0, c0, a1, b1, c1 of the two lines, to be used in the above format of equations (1) & (2).
-        """
+        """ Function to calculate the equations of two lines.
+         In form a0x + b0y = c0 (1) & a1x + b1y = c1 (2).
+
+        Parameters
+        ----------
+            ln1:
+                Line one start and end coordinates.
+            ln2:
+                Line two start and end coorinates.
+
+        Returns
+        -------
+            [a0, b0, c0, a1, b1, c1]:
+                List of the two lines, to be used in the above format of equations (1) & (2)."""
 
         # Get X and Y point values from first line
         l1_x0 = ln1[0][0]
@@ -1095,12 +1250,20 @@ class Viewer:
 
     # Find intersection of two lines using Cramer's Rule
     def intersection(self, ln1, ln2):
-        """
-        Uses Cramer's Rule to find the intersection point of two lines.
-        :param ln1: Line one input.
-        :param ln2: Line two input.
-        :return: (x, y) intersection point of line one and line two.
-        """
+        """ Uses Cramer's Rule to find the intersection point of two lines.
+         Outputs the intersection point. Generally used in conjunction with get_line_eq().
+
+        Parameters
+        ----------
+            ln1:
+                Line one input.
+            ln2:
+                Line two input.
+
+        Returns
+        -------
+            intercept:
+                Intersection point of line one and line two."""
 
         # Get X and Y point values from first line
         l1_x0 = ln1[0][0]
@@ -1152,13 +1315,10 @@ class Viewer:
 
     # Show the OpenCV Windows
     def show_window(self):
-        """
-        Function used to show the 'Realsense' window and the 'Edge' window
+        """ Function used to show the 'Realsense' window and the 'Edge' window
         'Realsense' - Shows processed image with all drawn contours and eliminated background, next to the colourised
                       depth stream.
-        'Edge' - Shows thresholded edge detection image.
-        :return: N/A
-        """
+        'Edge' - Shows thresholded edge detection image."""
 
         cv2.namedWindow('RealSense', cv2.WINDOW_AUTOSIZE)
         cv2.imshow('RealSense', self.images)

@@ -1,54 +1,28 @@
+"""main.py
+==========================================================================================
+Initialises viewer object and retrieves required control values dependent on flight phase.
+
+Harry Rance 07/04/2020."""
+
 import sys
 sys.path.append('/usr/local/lib')
 
-import pyrealsense2 as rs
-import numpy as np
 import cv2
 import Viewer
-import Autopilot
-
+## Initialisation of viewer object.
 v = Viewer.Viewer()
-#a = Autopilot.Autopilot()
-
-def pos_lr():
-    lines = v.get_lr_boundaries()
-
-    if len(lines) == 2:
-        line_l, line_r = lines
-
-        # Generate Equation of lines in form a0x + b0y = c0 (1) & a1x + b1y = c1 (2)
-        al, bl, cl, ar, br, cr = v.get_line_eq(line_l, line_r)
-
-        # To find X point using specified Y, (c-by)/a = x
-        y = 240
-
-        x_l = (cl - (bl * y)) / al
-        x_r = (cr - (br * y)) / ar
-
-        centre = (x_l + x_r) / 2
-
-        d_centre = centre - (848/2)
-
-        move_dir = ' '
-
-        if d_centre < 0.:
-            move_dir = 'LEFT'
-        elif d_centre > 0.:
-            move_dir = 'RIGHT'
-        else:
-            move_dir = 'NONE'
-
-        #print("Movement Direction: {}".format(move_dir))
-
-        return move_dir
 
 while True:
+    ## Tick count 1 for calculating framerate of system.
     e1 = cv2.getTickCount()
     v.update()
+    ## Tick count 2 for calculating framerate of system.
     e2 = cv2.getTickCount()
+    ## Total time taken for function to execute.
     time1 = (e2 - e1) / cv2.getTickFrequency()
+    ## Control command to be sent to drone.
     control = v.get_drone_control()
-
+    ## Flight phase of the drone.
     phase = v.deployment_phase
 
     if phase:
@@ -66,5 +40,3 @@ while True:
 
     #print("Time Update: {},".format(time1))
 
-
-    #LR_move_direction = pos_lr()

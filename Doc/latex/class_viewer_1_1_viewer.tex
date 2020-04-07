@@ -1,0 +1,864 @@
+\hypertarget{class_viewer_1_1_viewer}{}\doxysection{Viewer.\+Viewer Class Reference}
+\label{class_viewer_1_1_viewer}\index{Viewer.Viewer@{Viewer.Viewer}}
+
+
+Class for the Realsense Viewe.  
+
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+def \mbox{\hyperlink{class_viewer_1_1_viewer_a29d7816645f4dffcb27f5326cc14d2ef}{\+\_\+\+\_\+init\+\_\+\+\_\+}} (self)
+\begin{DoxyCompactList}\small\item\em Contructor Function. \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{class_viewer_1_1_viewer_ad004fbd6f3d1bcbf910e9b78829c4b64}{adapt\+\_\+depth\+\_\+clipping}} (self, depth\+\_\+image)
+\begin{DoxyCompactList}\small\item\em Function to implement adaptive depth clipping. \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{class_viewer_1_1_viewer_aa250dddf390c760d015ae9029322595d}{get\+\_\+move\+\_\+dir}} (self, lr\+\_\+dir)
+\begin{DoxyCompactList}\small\item\em Function to get the movement direction in the drone\textquotesingle{}s flight phase. \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{class_viewer_1_1_viewer_a4d1b919b718a91def1af7f34ed48416f}{get\+\_\+drone\+\_\+control}} (self)
+\begin{DoxyCompactList}\small\item\em Function to get the drone control commands, dependent on the flight phase -\/ either flying, or deploying. \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{class_viewer_1_1_viewer_a33855eae4dfbacc76bc1f72bd994b1ea}{canny\+\_\+edge}} (self, image)
+\begin{DoxyCompactList}\small\item\em Function to process the colour image. \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{class_viewer_1_1_viewer_a147d16432501765f86b05799adeaf2fb}{check\+\_\+z\+\_\+orientation}} (self, centre)
+\begin{DoxyCompactList}\small\item\em Function to check the orientation about the Z axis of the object being viewed. \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{class_viewer_1_1_viewer_a791912f365fc57fe2fe05fa24fcf36de}{get\+\_\+dist\+\_\+to\+\_\+pillar}} (self, rect)
+\begin{DoxyCompactList}\small\item\em Get the distance between the Realsense camera and the \textquotesingle{}bridge support pillar\textquotesingle{}. \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{class_viewer_1_1_viewer_af9d32ee2e2e8776b676a8bf197752f2b}{find\+\_\+contours}} (self, \mbox{\hyperlink{class_viewer_1_1_viewer_af330639e26104ccb39374a759f0343fb}{edges}})
+\begin{DoxyCompactList}\small\item\em Function used to find the contours of the object being viewed. \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{class_viewer_1_1_viewer_ac89eec0b5b0605fdf31de2f64946508c}{get\+\_\+deployment\+\_\+dir\+\_\+to\+\_\+move}} (self, c\+\_\+x, c\+\_\+y)
+\begin{DoxyCompactList}\small\item\em Gets the direction for the drone to move in the deployment phase. \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{class_viewer_1_1_viewer_af9ac854c3bd93f91b7da6ee5ff58e20f}{get\+\_\+deployment\+\_\+coords}} (self, tl, tr, bl, br, gap\+\_\+rect, full\+\_\+rect)
+\begin{DoxyCompactList}\small\item\em Gets the coordinates of the internal contour in the deployment phase. \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{class_viewer_1_1_viewer_ac1c2f1ff05147bfce3fec4cc84192368}{scale\+\_\+internal\+\_\+contour}} (self, centre, dims)
+\begin{DoxyCompactList}\small\item\em Function used to verify the points of the internal contour for deployment. \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{class_viewer_1_1_viewer_a04ab37069a0bb4f4be148246e0556600}{verify\+\_\+deployment\+\_\+area}} (self, shrunk\+\_\+points)
+\begin{DoxyCompactList}\small\item\em Function to verify whether the edges of the internal contour cross any point of the surrounding support structure. \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{class_viewer_1_1_viewer_a58615e3a7d2a2b58199a3528f3fedaac}{separate\+\_\+contours}} (self, contours, hierarchy)
+\begin{DoxyCompactList}\small\item\em Takes in the full contour list, alongside heirarchy and separates these into internal and external contours. \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{class_viewer_1_1_viewer_a83390474aca06f218119c373db546ddf}{draw\+\_\+roi}} (self, box, theta)
+\begin{DoxyCompactList}\small\item\em Draws a region of interest (R\+OI) above the pillar if no \textquotesingle{}gap\textquotesingle{} is detected. \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{class_viewer_1_1_viewer_a287e638ea4f5559ed4368149ed34cb8e}{shift\+\_\+line\+\_\+y\+\_\+t}} (self, point1, point2, avg\+\_\+ty)
+\begin{DoxyCompactList}\small\item\em Shifts the top line of the internal gap contour in the nevative y direction. \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{class_viewer_1_1_viewer_ad1273bcd6e4906a87dec5d263f7e28fc}{shift\+\_\+line\+\_\+y\+\_\+b}} (self, point1, point2, avg\+\_\+by)
+\begin{DoxyCompactList}\small\item\em Shifts the bottom line of the internal gap contour in the positive y direction. \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{class_viewer_1_1_viewer_ab12217f8bd86e1c22c0c7ad6be127b31}{shift\+\_\+line\+\_\+x\+\_\+r}} (self, point1, point2, avg\+\_\+rx)
+\begin{DoxyCompactList}\small\item\em Shifts the right hand line of the internal gap contour in the positive x direction. \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{class_viewer_1_1_viewer_a49418727ee98b5f9c6f4ef04ea860eba}{shift\+\_\+line\+\_\+x\+\_\+l}} (self, point1, point2, avg\+\_\+lx)
+\begin{DoxyCompactList}\small\item\em Shifts the left hand line of the internal gap contour in the nevative x direction. \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{class_viewer_1_1_viewer_a3424ea1057d55bdd2b9ed82dc7531f20}{deproj\+\_\+to\+\_\+pt}} (self, point1, point2)
+\begin{DoxyCompactList}\small\item\em Deprojects the pixel data into 3D point data with reference to the camera position. \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{class_viewer_1_1_viewer_ac7c729db6538b3ffa495a99f541fdf4f}{update}} (self)
+\begin{DoxyCompactList}\small\item\em Update function which runs all of the required functionality of the script and draws all required objects to the screen. \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{class_viewer_1_1_viewer_a0de5b8a20a358400f848c266f5dad7eb}{get\+\_\+x\+\_\+dist}} (self, mid, wh, theta)
+\begin{DoxyCompactList}\small\item\em Function to get the direction that the drone is required to move in, only in the x-\/direction. \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{class_viewer_1_1_viewer_a0d0fb72bcf3e6a955e0777b2e2517b7a}{get\+\_\+colour}} (self, x, y)
+\begin{DoxyCompactList}\small\item\em Function to get the B\+GR colour values at specified pixel. \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{class_viewer_1_1_viewer_a9321b10760272f4b83f31ea18e238edf}{get\+\_\+line\+\_\+eq}} (self, ln1, ln2)
+\begin{DoxyCompactList}\small\item\em Function to calculate the equations of two lines. \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{class_viewer_1_1_viewer_aa1a9e6bfb25d27d99a4a2dd154dac0b5}{intersection}} (self, ln1, ln2)
+\begin{DoxyCompactList}\small\item\em Uses Cramer\textquotesingle{}s Rule to find the intersection point of two lines. \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{class_viewer_1_1_viewer_abaf4a7030e33b90e66ea2622b4e9f4a1}{show\+\_\+window}} (self)
+\begin{DoxyCompactList}\small\item\em Function used to show the \textquotesingle{}Realsense\textquotesingle{} window and the \textquotesingle{}Edge\textquotesingle{} window \textquotesingle{}Realsense\textquotesingle{} -\/ Shows processed image with all drawn contours and eliminated background, next to the colourised depth stream. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_viewer_1_1_viewer_af854a5f1ae42d7aab379e16045fe8e90}{pipeline}}
+\begin{DoxyCompactList}\small\item\em Py\+Realsense Object Initialiser. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{class_viewer_1_1_viewer_ada21e810867d47daaddd4b3330e39ef9}{screen\+\_\+width}}
+\begin{DoxyCompactList}\small\item\em Global integer for screen width (default=848 pixels) \end{DoxyCompactList}\item 
+\mbox{\hyperlink{class_viewer_1_1_viewer_a1c5041c440b6c274ba5f0da036a68cf9}{screen\+\_\+height}}
+\begin{DoxyCompactList}\small\item\em Global integer for screen height (default=480 pixels) \end{DoxyCompactList}\item 
+\mbox{\hyperlink{class_viewer_1_1_viewer_a167764295786ad575f407386a4a14420}{profile}}
+\begin{DoxyCompactList}\small\item\em Initialises the profile for the depth and colour streams. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{class_viewer_1_1_viewer_ab5f0fbe0512219122139adf1c9433df7}{align}}
+\begin{DoxyCompactList}\small\item\em Alignment object to align the depth stream with colour stream. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{class_viewer_1_1_viewer_ae82393a81f8878cb2c86a64ad2c1d96d}{colouriser}}
+\begin{DoxyCompactList}\small\item\em Initialise colouriser for depth stream. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{class_viewer_1_1_viewer_aea3c50cb3f4a06c8cbd55e0c6ef38b59}{decimation}}
+\begin{DoxyCompactList}\small\item\em Initialise decimation filter object. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{class_viewer_1_1_viewer_a7677c24e67036fd01a82c2dd71fe8b00}{spatial}}
+\begin{DoxyCompactList}\small\item\em Initialise spatial filter object. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{class_viewer_1_1_viewer_a6893f05fc1d5418bf03ea6928edc9934}{temporal}}
+\begin{DoxyCompactList}\small\item\em Initialise temporal filter object. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{class_viewer_1_1_viewer_a5de2569a551e0d140d2abf6071fe495e}{hole\+\_\+filling}}
+\begin{DoxyCompactList}\small\item\em Initialise hole filling filter object. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{class_viewer_1_1_viewer_a8dcd77ac0144be41b8061a2f0992c4a4}{depth\+\_\+to\+\_\+disparity}}
+\begin{DoxyCompactList}\small\item\em Transform depth stream to disparity map. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{class_viewer_1_1_viewer_a8c2681b9303aafa45c2dfbe38d36bd43}{disparity\+\_\+to\+\_\+depth}}
+\begin{DoxyCompactList}\small\item\em Transform disparity map to depth stream. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{class_viewer_1_1_viewer_a68f89997e141a6cfc013433118232bad}{depth\+\_\+scale}}
+\begin{DoxyCompactList}\small\item\em Initialise depth scale object for converting raw distances into different units (default=millimetres.) \end{DoxyCompactList}\item 
+\mbox{\hyperlink{class_viewer_1_1_viewer_ada798f29d99c413cbef699b2960cce4d}{active\+\_\+contours}}
+\begin{DoxyCompactList}\small\item\em List containing all of the active contours, used to verify whether or not the contours are usable. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{class_viewer_1_1_viewer_a5cfb7799f1d628f999eefa645d9b08d4}{clipping\+\_\+dist}}
+\begin{DoxyCompactList}\small\item\em Initialise clipping distance with use of depth scale. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{class_viewer_1_1_viewer_a8e485580bcdab6c6adcdc0c068e13566}{verified\+\_\+deployment\+\_\+area}}
+\begin{DoxyCompactList}\small\item\em Boolean -\/ used to identify whether or not the deployment area is safe and deployable. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{class_viewer_1_1_viewer_addb5719dd3c3f1254789b84e78397f1a}{deployment\+\_\+phase}}
+\begin{DoxyCompactList}\small\item\em Boolean -\/ used to identify whether or not the drone is in the deployment phase. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{class_viewer_1_1_viewer_ab46f9e3e6cb11662fabc6b34fab82ef3}{pre\+\_\+deploy\+\_\+dir}}
+\begin{DoxyCompactList}\small\item\em Dict containing key\+: movement direction, value\+: movement distance (pixels). \end{DoxyCompactList}\item 
+\mbox{\hyperlink{class_viewer_1_1_viewer_afb3181e20bd8d43c4cda4df2922f9230}{direction\+\_\+to\+\_\+move}}
+\begin{DoxyCompactList}\small\item\em String containing directions to move. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{class_viewer_1_1_viewer_a0ba19e898af1085b8f204334c7c918f5}{distance\+\_\+to\+\_\+move}}
+\begin{DoxyCompactList}\small\item\em Float value containing distance to move. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{class_viewer_1_1_viewer_a0fc1a94381cdbecc27d9a3e13771ad5d}{distance\+\_\+from\+\_\+pillar}}
+\begin{DoxyCompactList}\small\item\em Float value containing distance from \textquotesingle{}pillar\textquotesingle{}. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{class_viewer_1_1_viewer_ad489a2e40cf4ee5dbe0f8fb68b90d666}{deployment\+\_\+area\+\_\+coordinates}}
+\begin{DoxyCompactList}\small\item\em List containing tuples of deployment area coordinates. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{class_viewer_1_1_viewer_a297bddffd8f90ec08ebf2e47d80db9f9}{deployment\+\_\+dir\+\_\+to\+\_\+move}}
+\begin{DoxyCompactList}\small\item\em Dict containing key\+: movement direction, value\+: movement distance (millimetres). \end{DoxyCompactList}\item 
+\mbox{\hyperlink{class_viewer_1_1_viewer_a38cecde1a3f650641bed3024fc4cf92b}{internal\+\_\+contour}}
+\begin{DoxyCompactList}\small\item\em Boolean -\/ identifies if the internal contour is active. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{class_viewer_1_1_viewer_ae4de7c2fcb8d817f82e1541e755fbc67}{external\+\_\+contour}}
+\begin{DoxyCompactList}\small\item\em Boolean -\/ identifies if the external contour is active. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{class_viewer_1_1_viewer_a4300727e99bf4fb198cb469f8db7be97}{contour\+\_\+shrink\+\_\+sf}}
+\begin{DoxyCompactList}\small\item\em Float value containing scale factor to shrink deployment area by. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{class_viewer_1_1_viewer_add0441e306ea0a8d3c4c9da0c6d64e4c}{deploy\+\_\+tl}}
+\begin{DoxyCompactList}\small\item\em Tuple containing coordinates of top left corner of deployment area. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{class_viewer_1_1_viewer_a9d1ae06ed5e36e1b0e68f3caab835eb0}{deploy\+\_\+tr}}
+\begin{DoxyCompactList}\small\item\em Tuple containing coordinates of top right corner of deployment area. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{class_viewer_1_1_viewer_aec999e097c95b7b187dd1b69b660982e}{deploy\+\_\+bl}}
+\begin{DoxyCompactList}\small\item\em Tuple containing coordinates of bottom left corner of deployment area. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{class_viewer_1_1_viewer_a4bcbc324dcb673c30fc98445af86cd6b}{deploy\+\_\+br}}
+\begin{DoxyCompactList}\small\item\em Tuple containing coordinates of bottom right corner of deployment area. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{class_viewer_1_1_viewer_a062f09288e89afaa5a354db723d027b6}{deployment\+\_\+area\+\_\+distances\+\_\+mm}}
+\begin{DoxyCompactList}\small\item\em List containing the width and height of deployment area in millimetres. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{class_viewer_1_1_viewer_a5db0fbe75ff04b41b10b623300d1fbb7}{aligned\+\_\+depth\+\_\+frame}}
+\begin{DoxyCompactList}\small\item\em Object containing depth frame data of the aligned depth frame (aligned with colour frame). \end{DoxyCompactList}\item 
+\mbox{\hyperlink{class_viewer_1_1_viewer_a298ff78bc9117d1539dbe25a962a715e}{colour\+\_\+frame}}
+\begin{DoxyCompactList}\small\item\em Object containing colour frame data. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{class_viewer_1_1_viewer_ab2423bd09cf5086fefe3c6d490a0af5c}{colourised\+\_\+filtered\+\_\+depth}}
+\begin{DoxyCompactList}\small\item\em Array containing the depth frame data, after being filtered and colourised for viewability. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{class_viewer_1_1_viewer_a95584fa057dff2db290b2475338a18f8}{colour\+\_\+image}}
+\begin{DoxyCompactList}\small\item\em Num\+Py array containing colour image data. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{class_viewer_1_1_viewer_a555ea09bea2806aaf2b275f68840f105}{depth\+\_\+intrin}}
+\begin{DoxyCompactList}\small\item\em Object containing intrinsic depth data used to calculate pixel-\/to-\/pixel distances in real-\/world units. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{class_viewer_1_1_viewer_ae978d745b8b88fe932c19a5d19253cb7}{colour\+\_\+intrin}}
+\begin{DoxyCompactList}\small\item\em Object containing intrinsic colour data used to calculate pixel-\/to-\/pixel distances in real-\/world units. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{class_viewer_1_1_viewer_af41874dcd76516410575672dc88e67ff}{depth\+\_\+colour\+\_\+extrin}}
+\begin{DoxyCompactList}\small\item\em Object containing data with respect to extrinsics of colour data cast to depth data. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{class_viewer_1_1_viewer_a824b28d519870f03e36a034adb78c7a3}{bg\+\_\+removed}}
+\begin{DoxyCompactList}\small\item\em Image object that all objects are drawn on. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{class_viewer_1_1_viewer_af330639e26104ccb39374a759f0343fb}{edges}}
+\begin{DoxyCompactList}\small\item\em Array object containing thresholded edge frame. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{class_viewer_1_1_viewer_a848056410f170c2ee2bf36effda5336d}{images}}
+\begin{DoxyCompactList}\small\item\em Stack of the self.\+bg\+\_\+removed image and self.\+colour\+\_\+image. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Class for the Realsense Viewe. 
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{class_viewer_1_1_viewer_a29d7816645f4dffcb27f5326cc14d2ef}\label{class_viewer_1_1_viewer_a29d7816645f4dffcb27f5326cc14d2ef}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!\_\_init\_\_@{\_\_init\_\_}}
+\index{\_\_init\_\_@{\_\_init\_\_}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{\_\_init\_\_()}{\_\_init\_\_()}}
+{\footnotesize\ttfamily def Viewer.\+Viewer.\+\_\+\+\_\+init\+\_\+\+\_\+ (\begin{DoxyParamCaption}\item[{}]{self }\end{DoxyParamCaption})}
+
+
+
+Contructor Function. 
+
+
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{class_viewer_1_1_viewer_ad004fbd6f3d1bcbf910e9b78829c4b64}\label{class_viewer_1_1_viewer_ad004fbd6f3d1bcbf910e9b78829c4b64}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!adapt\_depth\_clipping@{adapt\_depth\_clipping}}
+\index{adapt\_depth\_clipping@{adapt\_depth\_clipping}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{adapt\_depth\_clipping()}{adapt\_depth\_clipping()}}
+{\footnotesize\ttfamily def Viewer.\+Viewer.\+adapt\+\_\+depth\+\_\+clipping (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{depth\+\_\+image }\end{DoxyParamCaption})}
+
+
+
+Function to implement adaptive depth clipping. 
+
+Takes in the nearest object\textquotesingle{}s depth and eliminated background behind this with a 20\% tolerance.\hypertarget{class_viewer_1_1_viewer_autotoc_md2}{}\doxysubsubsection{Parameters}\label{class_viewer_1_1_viewer_autotoc_md2}
+depth\+\_\+image\+: The image data of the depth stream from the Realsense camera. \hypertarget{class_viewer_1_1_viewer_autotoc_md3}{}\doxysubsubsection{Returns}\label{class_viewer_1_1_viewer_autotoc_md3}
+closest\+\_\+object\+\_\+tol\+: The distance of the closes object (+20\%) tolerance in metres. \mbox{\Hypertarget{class_viewer_1_1_viewer_a33855eae4dfbacc76bc1f72bd994b1ea}\label{class_viewer_1_1_viewer_a33855eae4dfbacc76bc1f72bd994b1ea}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!canny\_edge@{canny\_edge}}
+\index{canny\_edge@{canny\_edge}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{canny\_edge()}{canny\_edge()}}
+{\footnotesize\ttfamily def Viewer.\+Viewer.\+canny\+\_\+edge (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{image }\end{DoxyParamCaption})}
+
+
+
+Function to process the colour image. 
+
+Takes in colour image data and outputs image edge data, in a BW thresholded format.\hypertarget{class_viewer_1_1_viewer_autotoc_md7}{}\doxysubsubsection{Parameters}\label{class_viewer_1_1_viewer_autotoc_md7}
+image\+: The colour image data to be processed. \hypertarget{class_viewer_1_1_viewer_autotoc_md8}{}\doxysubsubsection{Returns}\label{class_viewer_1_1_viewer_autotoc_md8}
+edges\+: The edge data to be used in subsequent processing functions. \mbox{\Hypertarget{class_viewer_1_1_viewer_a147d16432501765f86b05799adeaf2fb}\label{class_viewer_1_1_viewer_a147d16432501765f86b05799adeaf2fb}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!check\_z\_orientation@{check\_z\_orientation}}
+\index{check\_z\_orientation@{check\_z\_orientation}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{check\_z\_orientation()}{check\_z\_orientation()}}
+{\footnotesize\ttfamily def Viewer.\+Viewer.\+check\+\_\+z\+\_\+orientation (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{centre }\end{DoxyParamCaption})}
+
+
+
+Function to check the orientation about the Z axis of the object being viewed. 
+
+Outputs a visual of the orientation of the object relative to the horizontal.\hypertarget{class_viewer_1_1_viewer_autotoc_md9}{}\doxysubsubsection{Parameters}\label{class_viewer_1_1_viewer_autotoc_md9}
+centre\+: Centre point of the contour of the object. \mbox{\Hypertarget{class_viewer_1_1_viewer_a3424ea1057d55bdd2b9ed82dc7531f20}\label{class_viewer_1_1_viewer_a3424ea1057d55bdd2b9ed82dc7531f20}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!deproj\_to\_pt@{deproj\_to\_pt}}
+\index{deproj\_to\_pt@{deproj\_to\_pt}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{deproj\_to\_pt()}{deproj\_to\_pt()}}
+{\footnotesize\ttfamily def Viewer.\+Viewer.\+deproj\+\_\+to\+\_\+pt (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{point1,  }\item[{}]{point2 }\end{DoxyParamCaption})}
+
+
+
+Deprojects the pixel data into 3D point data with reference to the camera position. 
+
+Used to find the distances between pixels in millimetres.\hypertarget{class_viewer_1_1_viewer_autotoc_md32}{}\doxysubsubsection{Parameters}\label{class_viewer_1_1_viewer_autotoc_md32}
+point1\+: The first point of the line for which the distance is required to be measured. point2\+: The second point of the line for which the distance is required to be measured.\hypertarget{class_viewer_1_1_viewer_autotoc_md33}{}\doxysubsubsection{Returns}\label{class_viewer_1_1_viewer_autotoc_md33}
+\mbox{[}dx, dy, dz\mbox{]}\+: A list of the x, y and z distances between the two points in millimetres. \mbox{\Hypertarget{class_viewer_1_1_viewer_a83390474aca06f218119c373db546ddf}\label{class_viewer_1_1_viewer_a83390474aca06f218119c373db546ddf}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!draw\_roi@{draw\_roi}}
+\index{draw\_roi@{draw\_roi}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{draw\_roi()}{draw\_roi()}}
+{\footnotesize\ttfamily def Viewer.\+Viewer.\+draw\+\_\+roi (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{box,  }\item[{}]{theta }\end{DoxyParamCaption})}
+
+
+
+Draws a region of interest (R\+OI) above the pillar if no \textquotesingle{}gap\textquotesingle{} is detected. 
+
+Essentially detects the top edge of the pillar.\hypertarget{class_viewer_1_1_viewer_autotoc_md22}{}\doxysubsubsection{Parameters}\label{class_viewer_1_1_viewer_autotoc_md22}
+box\+: The external contour box coordinates theta\+: The angle of rotation of the box through the y-\/axis.\hypertarget{class_viewer_1_1_viewer_autotoc_md23}{}\doxysubsubsection{Returns}\label{class_viewer_1_1_viewer_autotoc_md23}
+\mbox{[}t\+\_\+l\+\_\+, t\+\_\+r\+\_\+, p\+\_\+l, p\+\_\+r, t\+\_\+l, t\+\_\+r, b\+\_\+l, b\+\_\+r\mbox{]}\+: A list of the deployable coordinates, given that the R\+OI is a verified deployment area. \mbox{\Hypertarget{class_viewer_1_1_viewer_af9d32ee2e2e8776b676a8bf197752f2b}\label{class_viewer_1_1_viewer_af9d32ee2e2e8776b676a8bf197752f2b}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!find\_contours@{find\_contours}}
+\index{find\_contours@{find\_contours}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{find\_contours()}{find\_contours()}}
+{\footnotesize\ttfamily def Viewer.\+Viewer.\+find\+\_\+contours (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{edges }\end{DoxyParamCaption})}
+
+
+
+Function used to find the contours of the object being viewed. 
+
+Contains operations to calculate the outer contour and inner contour, and also draws the contours on the screen, and processes contour data to output multiple variables, including the deployment phase and some movement directions.\hypertarget{class_viewer_1_1_viewer_autotoc_md12}{}\doxysubsubsection{Parameters}\label{class_viewer_1_1_viewer_autotoc_md12}
+edges\+: The edge data from the \mbox{\hyperlink{class_viewer_1_1_viewer_a33855eae4dfbacc76bc1f72bd994b1ea}{canny\+\_\+edge()}} function. \hypertarget{class_viewer_1_1_viewer_autotoc_md13}{}\doxysubsubsection{Returns}\label{class_viewer_1_1_viewer_autotoc_md13}
+box\+: Box object containing coordinates of the four corners of the bounding contour box. rect\+: List containing the centre point of the contour, the height and width of the contour, and the angle of rotation through the y-\/axis (into/out of the screen). contours\+\_\+int\+: Contours object containing all internal contour data. \mbox{\Hypertarget{class_viewer_1_1_viewer_a0d0fb72bcf3e6a955e0777b2e2517b7a}\label{class_viewer_1_1_viewer_a0d0fb72bcf3e6a955e0777b2e2517b7a}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!get\_colour@{get\_colour}}
+\index{get\_colour@{get\_colour}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{get\_colour()}{get\_colour()}}
+{\footnotesize\ttfamily def Viewer.\+Viewer.\+get\+\_\+colour (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{x,  }\item[{}]{y }\end{DoxyParamCaption})}
+
+
+
+Function to get the B\+GR colour values at specified pixel. 
+
+(0, 0, 0) corresponds to an inactive pixel.\hypertarget{class_viewer_1_1_viewer_autotoc_md36}{}\doxysubsubsection{Parameters}\label{class_viewer_1_1_viewer_autotoc_md36}
+x\+: X-\/coordinate of pixel. y\+: Y-\/coordinate of pixel.\hypertarget{class_viewer_1_1_viewer_autotoc_md37}{}\doxysubsubsection{Returns}\label{class_viewer_1_1_viewer_autotoc_md37}
+(B, G, R)\+: Tuple containing (B, G, R) colour data (Blue, Green, Red), between 0 and 255. \mbox{\Hypertarget{class_viewer_1_1_viewer_af9ac854c3bd93f91b7da6ee5ff58e20f}\label{class_viewer_1_1_viewer_af9ac854c3bd93f91b7da6ee5ff58e20f}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!get\_deployment\_coords@{get\_deployment\_coords}}
+\index{get\_deployment\_coords@{get\_deployment\_coords}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{get\_deployment\_coords()}{get\_deployment\_coords()}}
+{\footnotesize\ttfamily def Viewer.\+Viewer.\+get\+\_\+deployment\+\_\+coords (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{tl,  }\item[{}]{tr,  }\item[{}]{bl,  }\item[{}]{br,  }\item[{}]{gap\+\_\+rect,  }\item[{}]{full\+\_\+rect }\end{DoxyParamCaption})}
+
+
+
+Gets the coordinates of the internal contour in the deployment phase. 
+
+Shrinks the contour to output verified coordinates so that the drone does not attempt to deploy directly against one of the dap\textquotesingle{}s edges.\hypertarget{class_viewer_1_1_viewer_autotoc_md15}{}\doxysubsubsection{Parameters}\label{class_viewer_1_1_viewer_autotoc_md15}
+tl\+: Original top-\/left coordinate of contour. tr\+: Original top-\/right coordinate of contour. bl\+: Original bottom-\/left coordinate of contour. br\+: Original bottom-\/right coordinate of contour. gap\+\_\+rect\+: The rect data (midpoint, width, height and theta) of the gap contour. full\+\_\+rect\+: The rect data (midpoint, width, height and theta) of the main object contour.\hypertarget{class_viewer_1_1_viewer_autotoc_md16}{}\doxysubsubsection{Returns}\label{class_viewer_1_1_viewer_autotoc_md16}
+self.\+deployment\+\_\+area\+\_\+coordinates\+: List of verified coordinates for the drone to deploy the ground robot within. \mbox{\Hypertarget{class_viewer_1_1_viewer_ac89eec0b5b0605fdf31de2f64946508c}\label{class_viewer_1_1_viewer_ac89eec0b5b0605fdf31de2f64946508c}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!get\_deployment\_dir\_to\_move@{get\_deployment\_dir\_to\_move}}
+\index{get\_deployment\_dir\_to\_move@{get\_deployment\_dir\_to\_move}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{get\_deployment\_dir\_to\_move()}{get\_deployment\_dir\_to\_move()}}
+{\footnotesize\ttfamily def Viewer.\+Viewer.\+get\+\_\+deployment\+\_\+dir\+\_\+to\+\_\+move (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{c\+\_\+x,  }\item[{}]{c\+\_\+y }\end{DoxyParamCaption})}
+
+
+
+Gets the direction for the drone to move in the deployment phase. 
+
+Outputs a Dict object with \{direction to move \+: coordinates of movement\}\hypertarget{class_viewer_1_1_viewer_autotoc_md14}{}\doxysubsubsection{Parameters}\label{class_viewer_1_1_viewer_autotoc_md14}
+c\+\_\+x\+: Centre point x coordinate of the internal (gap) contour. c\+\_\+y\+: Centre point y coordinate of the internal (gap) contour. \mbox{\Hypertarget{class_viewer_1_1_viewer_a791912f365fc57fe2fe05fa24fcf36de}\label{class_viewer_1_1_viewer_a791912f365fc57fe2fe05fa24fcf36de}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!get\_dist\_to\_pillar@{get\_dist\_to\_pillar}}
+\index{get\_dist\_to\_pillar@{get\_dist\_to\_pillar}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{get\_dist\_to\_pillar()}{get\_dist\_to\_pillar()}}
+{\footnotesize\ttfamily def Viewer.\+Viewer.\+get\+\_\+dist\+\_\+to\+\_\+pillar (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{rect }\end{DoxyParamCaption})}
+
+
+
+Get the distance between the Realsense camera and the \textquotesingle{}bridge support pillar\textquotesingle{}. 
+
+Outputs the distance to the target in millimetres.\hypertarget{class_viewer_1_1_viewer_autotoc_md10}{}\doxysubsubsection{Parameters}\label{class_viewer_1_1_viewer_autotoc_md10}
+rect\+: List containing the centre point of the contour, the height and width of the contour, and the angle of rotation through the y-\/axis (into/out of the screen). \hypertarget{class_viewer_1_1_viewer_autotoc_md11}{}\doxysubsubsection{Returns}\label{class_viewer_1_1_viewer_autotoc_md11}
+dist\+: Distance to the viewed object in millimetres. \mbox{\Hypertarget{class_viewer_1_1_viewer_a4d1b919b718a91def1af7f34ed48416f}\label{class_viewer_1_1_viewer_a4d1b919b718a91def1af7f34ed48416f}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!get\_drone\_control@{get\_drone\_control}}
+\index{get\_drone\_control@{get\_drone\_control}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{get\_drone\_control()}{get\_drone\_control()}}
+{\footnotesize\ttfamily def Viewer.\+Viewer.\+get\+\_\+drone\+\_\+control (\begin{DoxyParamCaption}\item[{}]{self }\end{DoxyParamCaption})}
+
+
+
+Function to get the drone control commands, dependent on the flight phase -\/ either flying, or deploying. 
+
+Outputs the direction in which the drone needs to move, dependent on the phase of flight.\hypertarget{class_viewer_1_1_viewer_autotoc_md6}{}\doxysubsubsection{Returns}\label{class_viewer_1_1_viewer_autotoc_md6}
+self.\+pre\+\_\+deploy\+\_\+dir\+: Dictionary containing key\+: direction for the drone to move, value\+: number of pixels away from centre.
+
+self.\+deployment\+\_\+dir\+\_\+to\+\_\+move\+: Deployment direction if in deployment phase. \mbox{\Hypertarget{class_viewer_1_1_viewer_a9321b10760272f4b83f31ea18e238edf}\label{class_viewer_1_1_viewer_a9321b10760272f4b83f31ea18e238edf}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!get\_line\_eq@{get\_line\_eq}}
+\index{get\_line\_eq@{get\_line\_eq}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{get\_line\_eq()}{get\_line\_eq()}}
+{\footnotesize\ttfamily def Viewer.\+Viewer.\+get\+\_\+line\+\_\+eq (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{ln1,  }\item[{}]{ln2 }\end{DoxyParamCaption})}
+
+
+
+Function to calculate the equations of two lines. 
+
+In form a0x + b0y = c0 (1) \& a1x + b1y = c1 (2).\hypertarget{class_viewer_1_1_viewer_autotoc_md38}{}\doxysubsubsection{Parameters}\label{class_viewer_1_1_viewer_autotoc_md38}
+ln1\+: Line one start and end coordinates. ln2\+: Line two start and end coorinates.\hypertarget{class_viewer_1_1_viewer_autotoc_md39}{}\doxysubsubsection{Returns}\label{class_viewer_1_1_viewer_autotoc_md39}
+\mbox{[}a0, b0, c0, a1, b1, c1\mbox{]}\+: List of the two lines, to be used in the above format of equations (1) \& (2). \mbox{\Hypertarget{class_viewer_1_1_viewer_aa250dddf390c760d015ae9029322595d}\label{class_viewer_1_1_viewer_aa250dddf390c760d015ae9029322595d}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!get\_move\_dir@{get\_move\_dir}}
+\index{get\_move\_dir@{get\_move\_dir}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{get\_move\_dir()}{get\_move\_dir()}}
+{\footnotesize\ttfamily def Viewer.\+Viewer.\+get\+\_\+move\+\_\+dir (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{lr\+\_\+dir }\end{DoxyParamCaption})}
+
+
+
+Function to get the movement direction in the drone\textquotesingle{}s flight phase. 
+
+Takes input directions and outputs readable control commands.\hypertarget{class_viewer_1_1_viewer_autotoc_md4}{}\doxysubsubsection{Parameters}\label{class_viewer_1_1_viewer_autotoc_md4}
+lr\+\_\+dir\+: Move left, right or centred command received from the \mbox{\hyperlink{class_viewer_1_1_viewer_a0de5b8a20a358400f848c266f5dad7eb}{get\+\_\+x\+\_\+dist()}} function. \hypertarget{class_viewer_1_1_viewer_autotoc_md5}{}\doxysubsubsection{Returns}\label{class_viewer_1_1_viewer_autotoc_md5}
+self.\+pre\+\_\+deploy\+\_\+dir\+: Dictionary containing key\+: direction for the drone to move, value\+: number of pixels away from centre. \mbox{\Hypertarget{class_viewer_1_1_viewer_a0de5b8a20a358400f848c266f5dad7eb}\label{class_viewer_1_1_viewer_a0de5b8a20a358400f848c266f5dad7eb}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!get\_x\_dist@{get\_x\_dist}}
+\index{get\_x\_dist@{get\_x\_dist}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{get\_x\_dist()}{get\_x\_dist()}}
+{\footnotesize\ttfamily def Viewer.\+Viewer.\+get\+\_\+x\+\_\+dist (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{mid,  }\item[{}]{wh,  }\item[{}]{theta }\end{DoxyParamCaption})}
+
+
+
+Function to get the direction that the drone is required to move in, only in the x-\/direction. 
+
+Outputs the direction and distance in pixels to move.\hypertarget{class_viewer_1_1_viewer_autotoc_md34}{}\doxysubsubsection{Parameters}\label{class_viewer_1_1_viewer_autotoc_md34}
+mid\+: Midpoint of the input contour. wh\+: Width and height of the input contour. theta\+: Angle of rotation through the object y-\/axis of the object.\hypertarget{class_viewer_1_1_viewer_autotoc_md35}{}\doxysubsubsection{Returns}\label{class_viewer_1_1_viewer_autotoc_md35}
+dir\+: Direction of required movement of the drone. dx\+: Number of pixels required to be moved. \mbox{\Hypertarget{class_viewer_1_1_viewer_aa1a9e6bfb25d27d99a4a2dd154dac0b5}\label{class_viewer_1_1_viewer_aa1a9e6bfb25d27d99a4a2dd154dac0b5}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!intersection@{intersection}}
+\index{intersection@{intersection}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{intersection()}{intersection()}}
+{\footnotesize\ttfamily def Viewer.\+Viewer.\+intersection (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{ln1,  }\item[{}]{ln2 }\end{DoxyParamCaption})}
+
+
+
+Uses Cramer\textquotesingle{}s Rule to find the intersection point of two lines. 
+
+Outputs the intersection point. Generally used in conjunction with \mbox{\hyperlink{class_viewer_1_1_viewer_a9321b10760272f4b83f31ea18e238edf}{get\+\_\+line\+\_\+eq()}}.\hypertarget{class_viewer_1_1_viewer_autotoc_md40}{}\doxysubsubsection{Parameters}\label{class_viewer_1_1_viewer_autotoc_md40}
+ln1\+: Line one input. ln2\+: Line two input.\hypertarget{class_viewer_1_1_viewer_autotoc_md41}{}\doxysubsubsection{Returns}\label{class_viewer_1_1_viewer_autotoc_md41}
+intercept\+: Intersection point of line one and line two. \mbox{\Hypertarget{class_viewer_1_1_viewer_ac1c2f1ff05147bfce3fec4cc84192368}\label{class_viewer_1_1_viewer_ac1c2f1ff05147bfce3fec4cc84192368}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!scale\_internal\_contour@{scale\_internal\_contour}}
+\index{scale\_internal\_contour@{scale\_internal\_contour}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{scale\_internal\_contour()}{scale\_internal\_contour()}}
+{\footnotesize\ttfamily def Viewer.\+Viewer.\+scale\+\_\+internal\+\_\+contour (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{centre,  }\item[{}]{dims }\end{DoxyParamCaption})}
+
+
+
+Function used to verify the points of the internal contour for deployment. 
+
+Scales contour with respect to whether or not it is verified as a proper area of deployment.\hypertarget{class_viewer_1_1_viewer_autotoc_md17}{}\doxysubsubsection{Parameters}\label{class_viewer_1_1_viewer_autotoc_md17}
+centre\+: Centre point of internal contour. dims\+: Width and height of internal contour.\hypertarget{class_viewer_1_1_viewer_autotoc_md18}{}\doxysubsubsection{Returns}\label{class_viewer_1_1_viewer_autotoc_md18}
+tl\+: Scaled top-\/left coordinate. tr\+: Scaled top-\/right coordinate. bl\+: Scaled bottom-\/left coordinate. br\+: Scaled bottom-\/right coordinate \mbox{\Hypertarget{class_viewer_1_1_viewer_a58615e3a7d2a2b58199a3528f3fedaac}\label{class_viewer_1_1_viewer_a58615e3a7d2a2b58199a3528f3fedaac}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!separate\_contours@{separate\_contours}}
+\index{separate\_contours@{separate\_contours}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{separate\_contours()}{separate\_contours()}}
+{\footnotesize\ttfamily def Viewer.\+Viewer.\+separate\+\_\+contours (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{contours,  }\item[{}]{hierarchy }\end{DoxyParamCaption})}
+
+
+
+Takes in the full contour list, alongside heirarchy and separates these into internal and external contours. 
+
+Outputs independedt internal and external contour lists.\hypertarget{class_viewer_1_1_viewer_autotoc_md20}{}\doxysubsubsection{Parameters}\label{class_viewer_1_1_viewer_autotoc_md20}
+contours\+: The full list of all detected contours in the colour image. hierarchy\+: The hierarchy of the contours\+: i.\+e. If they are internal (having parent contours) or external (having no parent contours and being the initial of the group).\hypertarget{class_viewer_1_1_viewer_autotoc_md21}{}\doxysubsubsection{Returns}\label{class_viewer_1_1_viewer_autotoc_md21}
+int\+\_\+cnt\+: Internal contour list. ext\+\_\+cnt\+: External contour list. \mbox{\Hypertarget{class_viewer_1_1_viewer_a49418727ee98b5f9c6f4ef04ea860eba}\label{class_viewer_1_1_viewer_a49418727ee98b5f9c6f4ef04ea860eba}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!shift\_line\_x\_l@{shift\_line\_x\_l}}
+\index{shift\_line\_x\_l@{shift\_line\_x\_l}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{shift\_line\_x\_l()}{shift\_line\_x\_l()}}
+{\footnotesize\ttfamily def Viewer.\+Viewer.\+shift\+\_\+line\+\_\+x\+\_\+l (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{point1,  }\item[{}]{point2,  }\item[{}]{avg\+\_\+lx }\end{DoxyParamCaption})}
+
+
+
+Shifts the left hand line of the internal gap contour in the nevative x direction. 
+
+Outputs a set of shifted coordinates.\hypertarget{class_viewer_1_1_viewer_autotoc_md30}{}\doxysubsubsection{Parameters}\label{class_viewer_1_1_viewer_autotoc_md30}
+point1\+: The first point of the internal gap contour left hand line. point2\+: The second point of the internal gap contour left hand line.\hypertarget{class_viewer_1_1_viewer_autotoc_md31}{}\doxysubsubsection{Returns}\label{class_viewer_1_1_viewer_autotoc_md31}
+(pt1\+\_\+x, pt1\+\_\+y)\+: Tuple containing x and y coordinates of shifted point 1. (pt2\+\_\+x, pt2\+\_\+y)\+: Tuple containing x and y coordinates of shifted point 2. \mbox{\Hypertarget{class_viewer_1_1_viewer_ab12217f8bd86e1c22c0c7ad6be127b31}\label{class_viewer_1_1_viewer_ab12217f8bd86e1c22c0c7ad6be127b31}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!shift\_line\_x\_r@{shift\_line\_x\_r}}
+\index{shift\_line\_x\_r@{shift\_line\_x\_r}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{shift\_line\_x\_r()}{shift\_line\_x\_r()}}
+{\footnotesize\ttfamily def Viewer.\+Viewer.\+shift\+\_\+line\+\_\+x\+\_\+r (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{point1,  }\item[{}]{point2,  }\item[{}]{avg\+\_\+rx }\end{DoxyParamCaption})}
+
+
+
+Shifts the right hand line of the internal gap contour in the positive x direction. 
+
+Outputs a set of shifted coordinates.\hypertarget{class_viewer_1_1_viewer_autotoc_md28}{}\doxysubsubsection{Parameters}\label{class_viewer_1_1_viewer_autotoc_md28}
+point1\+: The first point of the internal gap contour right hand line. point2\+: The second point of the internal gap contour right hand line.\hypertarget{class_viewer_1_1_viewer_autotoc_md29}{}\doxysubsubsection{Returns}\label{class_viewer_1_1_viewer_autotoc_md29}
+(pt1\+\_\+x, pt1\+\_\+y)\+: Tuple containing x and y coordinates of shifted point 1. (pt2\+\_\+x, pt2\+\_\+y)\+: Tuple containing x and y coordinates of shifted point 2. \mbox{\Hypertarget{class_viewer_1_1_viewer_ad1273bcd6e4906a87dec5d263f7e28fc}\label{class_viewer_1_1_viewer_ad1273bcd6e4906a87dec5d263f7e28fc}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!shift\_line\_y\_b@{shift\_line\_y\_b}}
+\index{shift\_line\_y\_b@{shift\_line\_y\_b}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{shift\_line\_y\_b()}{shift\_line\_y\_b()}}
+{\footnotesize\ttfamily def Viewer.\+Viewer.\+shift\+\_\+line\+\_\+y\+\_\+b (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{point1,  }\item[{}]{point2,  }\item[{}]{avg\+\_\+by }\end{DoxyParamCaption})}
+
+
+
+Shifts the bottom line of the internal gap contour in the positive y direction. 
+
+Outputs a set of shifted coordinates.\hypertarget{class_viewer_1_1_viewer_autotoc_md26}{}\doxysubsubsection{Parameters}\label{class_viewer_1_1_viewer_autotoc_md26}
+point1\+: The first point of the internal gap contour bottom line. point2\+: The second point of the internal gap contour bottom line.\hypertarget{class_viewer_1_1_viewer_autotoc_md27}{}\doxysubsubsection{Returns}\label{class_viewer_1_1_viewer_autotoc_md27}
+(pt1\+\_\+x, pt1\+\_\+y)\+: Tuple containing x and y coordinates of shifted point 1. (pt2\+\_\+x, pt2\+\_\+y)\+: Tuple containing x and y coordinates of shifted point 2. \mbox{\Hypertarget{class_viewer_1_1_viewer_a287e638ea4f5559ed4368149ed34cb8e}\label{class_viewer_1_1_viewer_a287e638ea4f5559ed4368149ed34cb8e}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!shift\_line\_y\_t@{shift\_line\_y\_t}}
+\index{shift\_line\_y\_t@{shift\_line\_y\_t}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{shift\_line\_y\_t()}{shift\_line\_y\_t()}}
+{\footnotesize\ttfamily def Viewer.\+Viewer.\+shift\+\_\+line\+\_\+y\+\_\+t (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{point1,  }\item[{}]{point2,  }\item[{}]{avg\+\_\+ty }\end{DoxyParamCaption})}
+
+
+
+Shifts the top line of the internal gap contour in the nevative y direction. 
+
+Outputs a set of shifted coordinates.\hypertarget{class_viewer_1_1_viewer_autotoc_md24}{}\doxysubsubsection{Parameters}\label{class_viewer_1_1_viewer_autotoc_md24}
+point1\+: The first point of the internal gap contour top line. point2\+: The second point of the internal gap contour top line.\hypertarget{class_viewer_1_1_viewer_autotoc_md25}{}\doxysubsubsection{Returns}\label{class_viewer_1_1_viewer_autotoc_md25}
+(pt1\+\_\+x, pt1\+\_\+y)\+: Tuple containing x and y coordinates of shifted point 1. (pt2\+\_\+x, pt2\+\_\+y)\+: Tuple containing x and y coordinates of shifted point 2. \mbox{\Hypertarget{class_viewer_1_1_viewer_abaf4a7030e33b90e66ea2622b4e9f4a1}\label{class_viewer_1_1_viewer_abaf4a7030e33b90e66ea2622b4e9f4a1}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!show\_window@{show\_window}}
+\index{show\_window@{show\_window}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{show\_window()}{show\_window()}}
+{\footnotesize\ttfamily def Viewer.\+Viewer.\+show\+\_\+window (\begin{DoxyParamCaption}\item[{}]{self }\end{DoxyParamCaption})}
+
+
+
+Function used to show the \textquotesingle{}Realsense\textquotesingle{} window and the \textquotesingle{}Edge\textquotesingle{} window \textquotesingle{}Realsense\textquotesingle{} -\/ Shows processed image with all drawn contours and eliminated background, next to the colourised depth stream. 
+
+\textquotesingle{}Edge\textquotesingle{} -\/ Shows thresholded edge detection image. \mbox{\Hypertarget{class_viewer_1_1_viewer_ac7c729db6538b3ffa495a99f541fdf4f}\label{class_viewer_1_1_viewer_ac7c729db6538b3ffa495a99f541fdf4f}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!update@{update}}
+\index{update@{update}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{update()}{update()}}
+{\footnotesize\ttfamily def Viewer.\+Viewer.\+update (\begin{DoxyParamCaption}\item[{}]{self }\end{DoxyParamCaption})}
+
+
+
+Update function which runs all of the required functionality of the script and draws all required objects to the screen. 
+
+Called every time the screen updates. \mbox{\Hypertarget{class_viewer_1_1_viewer_a04ab37069a0bb4f4be148246e0556600}\label{class_viewer_1_1_viewer_a04ab37069a0bb4f4be148246e0556600}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!verify\_deployment\_area@{verify\_deployment\_area}}
+\index{verify\_deployment\_area@{verify\_deployment\_area}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{verify\_deployment\_area()}{verify\_deployment\_area()}}
+{\footnotesize\ttfamily def Viewer.\+Viewer.\+verify\+\_\+deployment\+\_\+area (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{shrunk\+\_\+points }\end{DoxyParamCaption})}
+
+
+
+Function to verify whether the edges of the internal contour cross any point of the surrounding support structure. 
+
+If the edges do cross the structure, the drone cannot deploy as it will collide with pillar. If they do not, then there is a verified empty space for the drone to deploy the ground robot within.\hypertarget{class_viewer_1_1_viewer_autotoc_md19}{}\doxysubsubsection{Parameters}\label{class_viewer_1_1_viewer_autotoc_md19}
+shrunk\+\_\+points\+: The shrunken inner contour of the gap. 
+
+\doxysubsection{Member Data Documentation}
+\mbox{\Hypertarget{class_viewer_1_1_viewer_ada798f29d99c413cbef699b2960cce4d}\label{class_viewer_1_1_viewer_ada798f29d99c413cbef699b2960cce4d}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!active\_contours@{active\_contours}}
+\index{active\_contours@{active\_contours}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{active\_contours}{active\_contours}}
+{\footnotesize\ttfamily Viewer.\+Viewer.\+active\+\_\+contours}
+
+
+
+List containing all of the active contours, used to verify whether or not the contours are usable. 
+
+\mbox{\Hypertarget{class_viewer_1_1_viewer_ab5f0fbe0512219122139adf1c9433df7}\label{class_viewer_1_1_viewer_ab5f0fbe0512219122139adf1c9433df7}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!align@{align}}
+\index{align@{align}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{align}{align}}
+{\footnotesize\ttfamily Viewer.\+Viewer.\+align}
+
+
+
+Alignment object to align the depth stream with colour stream. 
+
+\mbox{\Hypertarget{class_viewer_1_1_viewer_a5db0fbe75ff04b41b10b623300d1fbb7}\label{class_viewer_1_1_viewer_a5db0fbe75ff04b41b10b623300d1fbb7}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!aligned\_depth\_frame@{aligned\_depth\_frame}}
+\index{aligned\_depth\_frame@{aligned\_depth\_frame}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{aligned\_depth\_frame}{aligned\_depth\_frame}}
+{\footnotesize\ttfamily Viewer.\+Viewer.\+aligned\+\_\+depth\+\_\+frame}
+
+
+
+Object containing depth frame data of the aligned depth frame (aligned with colour frame). 
+
+\mbox{\Hypertarget{class_viewer_1_1_viewer_a824b28d519870f03e36a034adb78c7a3}\label{class_viewer_1_1_viewer_a824b28d519870f03e36a034adb78c7a3}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!bg\_removed@{bg\_removed}}
+\index{bg\_removed@{bg\_removed}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{bg\_removed}{bg\_removed}}
+{\footnotesize\ttfamily Viewer.\+Viewer.\+bg\+\_\+removed}
+
+
+
+Image object that all objects are drawn on. 
+
+Background is removed using self.\+clipping\+\_\+dist and aligned depth/ \mbox{\Hypertarget{class_viewer_1_1_viewer_a5cfb7799f1d628f999eefa645d9b08d4}\label{class_viewer_1_1_viewer_a5cfb7799f1d628f999eefa645d9b08d4}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!clipping\_dist@{clipping\_dist}}
+\index{clipping\_dist@{clipping\_dist}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{clipping\_dist}{clipping\_dist}}
+{\footnotesize\ttfamily Viewer.\+Viewer.\+clipping\+\_\+dist}
+
+
+
+Initialise clipping distance with use of depth scale. 
+
+Used to eliminate background from image. \mbox{\Hypertarget{class_viewer_1_1_viewer_a298ff78bc9117d1539dbe25a962a715e}\label{class_viewer_1_1_viewer_a298ff78bc9117d1539dbe25a962a715e}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!colour\_frame@{colour\_frame}}
+\index{colour\_frame@{colour\_frame}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{colour\_frame}{colour\_frame}}
+{\footnotesize\ttfamily Viewer.\+Viewer.\+colour\+\_\+frame}
+
+
+
+Object containing colour frame data. 
+
+\mbox{\Hypertarget{class_viewer_1_1_viewer_a95584fa057dff2db290b2475338a18f8}\label{class_viewer_1_1_viewer_a95584fa057dff2db290b2475338a18f8}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!colour\_image@{colour\_image}}
+\index{colour\_image@{colour\_image}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{colour\_image}{colour\_image}}
+{\footnotesize\ttfamily Viewer.\+Viewer.\+colour\+\_\+image}
+
+
+
+Num\+Py array containing colour image data. 
+
+\mbox{\Hypertarget{class_viewer_1_1_viewer_ae978d745b8b88fe932c19a5d19253cb7}\label{class_viewer_1_1_viewer_ae978d745b8b88fe932c19a5d19253cb7}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!colour\_intrin@{colour\_intrin}}
+\index{colour\_intrin@{colour\_intrin}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{colour\_intrin}{colour\_intrin}}
+{\footnotesize\ttfamily Viewer.\+Viewer.\+colour\+\_\+intrin}
+
+
+
+Object containing intrinsic colour data used to calculate pixel-\/to-\/pixel distances in real-\/world units. 
+
+\mbox{\Hypertarget{class_viewer_1_1_viewer_ab2423bd09cf5086fefe3c6d490a0af5c}\label{class_viewer_1_1_viewer_ab2423bd09cf5086fefe3c6d490a0af5c}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!colourised\_filtered\_depth@{colourised\_filtered\_depth}}
+\index{colourised\_filtered\_depth@{colourised\_filtered\_depth}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{colourised\_filtered\_depth}{colourised\_filtered\_depth}}
+{\footnotesize\ttfamily Viewer.\+Viewer.\+colourised\+\_\+filtered\+\_\+depth}
+
+
+
+Array containing the depth frame data, after being filtered and colourised for viewability. 
+
+\mbox{\Hypertarget{class_viewer_1_1_viewer_ae82393a81f8878cb2c86a64ad2c1d96d}\label{class_viewer_1_1_viewer_ae82393a81f8878cb2c86a64ad2c1d96d}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!colouriser@{colouriser}}
+\index{colouriser@{colouriser}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{colouriser}{colouriser}}
+{\footnotesize\ttfamily Viewer.\+Viewer.\+colouriser}
+
+
+
+Initialise colouriser for depth stream. 
+
+\mbox{\Hypertarget{class_viewer_1_1_viewer_a4300727e99bf4fb198cb469f8db7be97}\label{class_viewer_1_1_viewer_a4300727e99bf4fb198cb469f8db7be97}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!contour\_shrink\_sf@{contour\_shrink\_sf}}
+\index{contour\_shrink\_sf@{contour\_shrink\_sf}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{contour\_shrink\_sf}{contour\_shrink\_sf}}
+{\footnotesize\ttfamily Viewer.\+Viewer.\+contour\+\_\+shrink\+\_\+sf}
+
+
+
+Float value containing scale factor to shrink deployment area by. 
+
+\mbox{\Hypertarget{class_viewer_1_1_viewer_aea3c50cb3f4a06c8cbd55e0c6ef38b59}\label{class_viewer_1_1_viewer_aea3c50cb3f4a06c8cbd55e0c6ef38b59}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!decimation@{decimation}}
+\index{decimation@{decimation}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{decimation}{decimation}}
+{\footnotesize\ttfamily Viewer.\+Viewer.\+decimation}
+
+
+
+Initialise decimation filter object. 
+
+\mbox{\Hypertarget{class_viewer_1_1_viewer_aec999e097c95b7b187dd1b69b660982e}\label{class_viewer_1_1_viewer_aec999e097c95b7b187dd1b69b660982e}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!deploy\_bl@{deploy\_bl}}
+\index{deploy\_bl@{deploy\_bl}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{deploy\_bl}{deploy\_bl}}
+{\footnotesize\ttfamily Viewer.\+Viewer.\+deploy\+\_\+bl}
+
+
+
+Tuple containing coordinates of bottom left corner of deployment area. 
+
+\mbox{\Hypertarget{class_viewer_1_1_viewer_a4bcbc324dcb673c30fc98445af86cd6b}\label{class_viewer_1_1_viewer_a4bcbc324dcb673c30fc98445af86cd6b}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!deploy\_br@{deploy\_br}}
+\index{deploy\_br@{deploy\_br}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{deploy\_br}{deploy\_br}}
+{\footnotesize\ttfamily Viewer.\+Viewer.\+deploy\+\_\+br}
+
+
+
+Tuple containing coordinates of bottom right corner of deployment area. 
+
+\mbox{\Hypertarget{class_viewer_1_1_viewer_add0441e306ea0a8d3c4c9da0c6d64e4c}\label{class_viewer_1_1_viewer_add0441e306ea0a8d3c4c9da0c6d64e4c}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!deploy\_tl@{deploy\_tl}}
+\index{deploy\_tl@{deploy\_tl}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{deploy\_tl}{deploy\_tl}}
+{\footnotesize\ttfamily Viewer.\+Viewer.\+deploy\+\_\+tl}
+
+
+
+Tuple containing coordinates of top left corner of deployment area. 
+
+\mbox{\Hypertarget{class_viewer_1_1_viewer_a9d1ae06ed5e36e1b0e68f3caab835eb0}\label{class_viewer_1_1_viewer_a9d1ae06ed5e36e1b0e68f3caab835eb0}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!deploy\_tr@{deploy\_tr}}
+\index{deploy\_tr@{deploy\_tr}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{deploy\_tr}{deploy\_tr}}
+{\footnotesize\ttfamily Viewer.\+Viewer.\+deploy\+\_\+tr}
+
+
+
+Tuple containing coordinates of top right corner of deployment area. 
+
+\mbox{\Hypertarget{class_viewer_1_1_viewer_ad489a2e40cf4ee5dbe0f8fb68b90d666}\label{class_viewer_1_1_viewer_ad489a2e40cf4ee5dbe0f8fb68b90d666}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!deployment\_area\_coordinates@{deployment\_area\_coordinates}}
+\index{deployment\_area\_coordinates@{deployment\_area\_coordinates}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{deployment\_area\_coordinates}{deployment\_area\_coordinates}}
+{\footnotesize\ttfamily Viewer.\+Viewer.\+deployment\+\_\+area\+\_\+coordinates}
+
+
+
+List containing tuples of deployment area coordinates. 
+
+\mbox{\Hypertarget{class_viewer_1_1_viewer_a062f09288e89afaa5a354db723d027b6}\label{class_viewer_1_1_viewer_a062f09288e89afaa5a354db723d027b6}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!deployment\_area\_distances\_mm@{deployment\_area\_distances\_mm}}
+\index{deployment\_area\_distances\_mm@{deployment\_area\_distances\_mm}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{deployment\_area\_distances\_mm}{deployment\_area\_distances\_mm}}
+{\footnotesize\ttfamily Viewer.\+Viewer.\+deployment\+\_\+area\+\_\+distances\+\_\+mm}
+
+
+
+List containing the width and height of deployment area in millimetres. 
+
+\mbox{\Hypertarget{class_viewer_1_1_viewer_a297bddffd8f90ec08ebf2e47d80db9f9}\label{class_viewer_1_1_viewer_a297bddffd8f90ec08ebf2e47d80db9f9}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!deployment\_dir\_to\_move@{deployment\_dir\_to\_move}}
+\index{deployment\_dir\_to\_move@{deployment\_dir\_to\_move}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{deployment\_dir\_to\_move}{deployment\_dir\_to\_move}}
+{\footnotesize\ttfamily Viewer.\+Viewer.\+deployment\+\_\+dir\+\_\+to\+\_\+move}
+
+
+
+Dict containing key\+: movement direction, value\+: movement distance (millimetres). 
+
+For deployment phase. \mbox{\Hypertarget{class_viewer_1_1_viewer_addb5719dd3c3f1254789b84e78397f1a}\label{class_viewer_1_1_viewer_addb5719dd3c3f1254789b84e78397f1a}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!deployment\_phase@{deployment\_phase}}
+\index{deployment\_phase@{deployment\_phase}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{deployment\_phase}{deployment\_phase}}
+{\footnotesize\ttfamily Viewer.\+Viewer.\+deployment\+\_\+phase}
+
+
+
+Boolean -\/ used to identify whether or not the drone is in the deployment phase. 
+
+\mbox{\Hypertarget{class_viewer_1_1_viewer_af41874dcd76516410575672dc88e67ff}\label{class_viewer_1_1_viewer_af41874dcd76516410575672dc88e67ff}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!depth\_colour\_extrin@{depth\_colour\_extrin}}
+\index{depth\_colour\_extrin@{depth\_colour\_extrin}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{depth\_colour\_extrin}{depth\_colour\_extrin}}
+{\footnotesize\ttfamily Viewer.\+Viewer.\+depth\+\_\+colour\+\_\+extrin}
+
+
+
+Object containing data with respect to extrinsics of colour data cast to depth data. 
+
+\mbox{\Hypertarget{class_viewer_1_1_viewer_a555ea09bea2806aaf2b275f68840f105}\label{class_viewer_1_1_viewer_a555ea09bea2806aaf2b275f68840f105}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!depth\_intrin@{depth\_intrin}}
+\index{depth\_intrin@{depth\_intrin}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{depth\_intrin}{depth\_intrin}}
+{\footnotesize\ttfamily Viewer.\+Viewer.\+depth\+\_\+intrin}
+
+
+
+Object containing intrinsic depth data used to calculate pixel-\/to-\/pixel distances in real-\/world units. 
+
+\mbox{\Hypertarget{class_viewer_1_1_viewer_a68f89997e141a6cfc013433118232bad}\label{class_viewer_1_1_viewer_a68f89997e141a6cfc013433118232bad}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!depth\_scale@{depth\_scale}}
+\index{depth\_scale@{depth\_scale}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{depth\_scale}{depth\_scale}}
+{\footnotesize\ttfamily Viewer.\+Viewer.\+depth\+\_\+scale}
+
+
+
+Initialise depth scale object for converting raw distances into different units (default=millimetres.) 
+
+\mbox{\Hypertarget{class_viewer_1_1_viewer_a8dcd77ac0144be41b8061a2f0992c4a4}\label{class_viewer_1_1_viewer_a8dcd77ac0144be41b8061a2f0992c4a4}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!depth\_to\_disparity@{depth\_to\_disparity}}
+\index{depth\_to\_disparity@{depth\_to\_disparity}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{depth\_to\_disparity}{depth\_to\_disparity}}
+{\footnotesize\ttfamily Viewer.\+Viewer.\+depth\+\_\+to\+\_\+disparity}
+
+
+
+Transform depth stream to disparity map. 
+
+\mbox{\Hypertarget{class_viewer_1_1_viewer_afb3181e20bd8d43c4cda4df2922f9230}\label{class_viewer_1_1_viewer_afb3181e20bd8d43c4cda4df2922f9230}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!direction\_to\_move@{direction\_to\_move}}
+\index{direction\_to\_move@{direction\_to\_move}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{direction\_to\_move}{direction\_to\_move}}
+{\footnotesize\ttfamily Viewer.\+Viewer.\+direction\+\_\+to\+\_\+move}
+
+
+
+String containing directions to move. 
+
+\mbox{\Hypertarget{class_viewer_1_1_viewer_a8c2681b9303aafa45c2dfbe38d36bd43}\label{class_viewer_1_1_viewer_a8c2681b9303aafa45c2dfbe38d36bd43}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!disparity\_to\_depth@{disparity\_to\_depth}}
+\index{disparity\_to\_depth@{disparity\_to\_depth}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{disparity\_to\_depth}{disparity\_to\_depth}}
+{\footnotesize\ttfamily Viewer.\+Viewer.\+disparity\+\_\+to\+\_\+depth}
+
+
+
+Transform disparity map to depth stream. 
+
+\mbox{\Hypertarget{class_viewer_1_1_viewer_a0fc1a94381cdbecc27d9a3e13771ad5d}\label{class_viewer_1_1_viewer_a0fc1a94381cdbecc27d9a3e13771ad5d}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!distance\_from\_pillar@{distance\_from\_pillar}}
+\index{distance\_from\_pillar@{distance\_from\_pillar}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{distance\_from\_pillar}{distance\_from\_pillar}}
+{\footnotesize\ttfamily Viewer.\+Viewer.\+distance\+\_\+from\+\_\+pillar}
+
+
+
+Float value containing distance from \textquotesingle{}pillar\textquotesingle{}. 
+
+\mbox{\Hypertarget{class_viewer_1_1_viewer_a0ba19e898af1085b8f204334c7c918f5}\label{class_viewer_1_1_viewer_a0ba19e898af1085b8f204334c7c918f5}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!distance\_to\_move@{distance\_to\_move}}
+\index{distance\_to\_move@{distance\_to\_move}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{distance\_to\_move}{distance\_to\_move}}
+{\footnotesize\ttfamily Viewer.\+Viewer.\+distance\+\_\+to\+\_\+move}
+
+
+
+Float value containing distance to move. 
+
+\mbox{\Hypertarget{class_viewer_1_1_viewer_af330639e26104ccb39374a759f0343fb}\label{class_viewer_1_1_viewer_af330639e26104ccb39374a759f0343fb}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!edges@{edges}}
+\index{edges@{edges}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{edges}{edges}}
+{\footnotesize\ttfamily Viewer.\+Viewer.\+edges}
+
+
+
+Array object containing thresholded edge frame. 
+
+\mbox{\Hypertarget{class_viewer_1_1_viewer_ae4de7c2fcb8d817f82e1541e755fbc67}\label{class_viewer_1_1_viewer_ae4de7c2fcb8d817f82e1541e755fbc67}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!external\_contour@{external\_contour}}
+\index{external\_contour@{external\_contour}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{external\_contour}{external\_contour}}
+{\footnotesize\ttfamily Viewer.\+Viewer.\+external\+\_\+contour}
+
+
+
+Boolean -\/ identifies if the external contour is active. 
+
+\mbox{\Hypertarget{class_viewer_1_1_viewer_a5de2569a551e0d140d2abf6071fe495e}\label{class_viewer_1_1_viewer_a5de2569a551e0d140d2abf6071fe495e}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!hole\_filling@{hole\_filling}}
+\index{hole\_filling@{hole\_filling}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{hole\_filling}{hole\_filling}}
+{\footnotesize\ttfamily Viewer.\+Viewer.\+hole\+\_\+filling}
+
+
+
+Initialise hole filling filter object. 
+
+\mbox{\Hypertarget{class_viewer_1_1_viewer_a848056410f170c2ee2bf36effda5336d}\label{class_viewer_1_1_viewer_a848056410f170c2ee2bf36effda5336d}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!images@{images}}
+\index{images@{images}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{images}{images}}
+{\footnotesize\ttfamily Viewer.\+Viewer.\+images}
+
+
+
+Stack of the self.\+bg\+\_\+removed image and self.\+colour\+\_\+image. 
+
+\mbox{\Hypertarget{class_viewer_1_1_viewer_a38cecde1a3f650641bed3024fc4cf92b}\label{class_viewer_1_1_viewer_a38cecde1a3f650641bed3024fc4cf92b}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!internal\_contour@{internal\_contour}}
+\index{internal\_contour@{internal\_contour}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{internal\_contour}{internal\_contour}}
+{\footnotesize\ttfamily Viewer.\+Viewer.\+internal\+\_\+contour}
+
+
+
+Boolean -\/ identifies if the internal contour is active. 
+
+\mbox{\Hypertarget{class_viewer_1_1_viewer_af854a5f1ae42d7aab379e16045fe8e90}\label{class_viewer_1_1_viewer_af854a5f1ae42d7aab379e16045fe8e90}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!pipeline@{pipeline}}
+\index{pipeline@{pipeline}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{pipeline}{pipeline}}
+{\footnotesize\ttfamily Viewer.\+Viewer.\+pipeline}
+
+
+
+Py\+Realsense Object Initialiser. 
+
+\mbox{\Hypertarget{class_viewer_1_1_viewer_ab46f9e3e6cb11662fabc6b34fab82ef3}\label{class_viewer_1_1_viewer_ab46f9e3e6cb11662fabc6b34fab82ef3}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!pre\_deploy\_dir@{pre\_deploy\_dir}}
+\index{pre\_deploy\_dir@{pre\_deploy\_dir}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{pre\_deploy\_dir}{pre\_deploy\_dir}}
+{\footnotesize\ttfamily Viewer.\+Viewer.\+pre\+\_\+deploy\+\_\+dir}
+
+
+
+Dict containing key\+: movement direction, value\+: movement distance (pixels). 
+
+For flight phase. \mbox{\Hypertarget{class_viewer_1_1_viewer_a167764295786ad575f407386a4a14420}\label{class_viewer_1_1_viewer_a167764295786ad575f407386a4a14420}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!profile@{profile}}
+\index{profile@{profile}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{profile}{profile}}
+{\footnotesize\ttfamily Viewer.\+Viewer.\+profile}
+
+
+
+Initialises the profile for the depth and colour streams. 
+
+\mbox{\Hypertarget{class_viewer_1_1_viewer_a1c5041c440b6c274ba5f0da036a68cf9}\label{class_viewer_1_1_viewer_a1c5041c440b6c274ba5f0da036a68cf9}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!screen\_height@{screen\_height}}
+\index{screen\_height@{screen\_height}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{screen\_height}{screen\_height}}
+{\footnotesize\ttfamily Viewer.\+Viewer.\+screen\+\_\+height}
+
+
+
+Global integer for screen height (default=480 pixels) 
+
+\mbox{\Hypertarget{class_viewer_1_1_viewer_ada21e810867d47daaddd4b3330e39ef9}\label{class_viewer_1_1_viewer_ada21e810867d47daaddd4b3330e39ef9}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!screen\_width@{screen\_width}}
+\index{screen\_width@{screen\_width}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{screen\_width}{screen\_width}}
+{\footnotesize\ttfamily Viewer.\+Viewer.\+screen\+\_\+width}
+
+
+
+Global integer for screen width (default=848 pixels) 
+
+\mbox{\Hypertarget{class_viewer_1_1_viewer_a7677c24e67036fd01a82c2dd71fe8b00}\label{class_viewer_1_1_viewer_a7677c24e67036fd01a82c2dd71fe8b00}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!spatial@{spatial}}
+\index{spatial@{spatial}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{spatial}{spatial}}
+{\footnotesize\ttfamily Viewer.\+Viewer.\+spatial}
+
+
+
+Initialise spatial filter object. 
+
+\mbox{\Hypertarget{class_viewer_1_1_viewer_a6893f05fc1d5418bf03ea6928edc9934}\label{class_viewer_1_1_viewer_a6893f05fc1d5418bf03ea6928edc9934}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!temporal@{temporal}}
+\index{temporal@{temporal}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{temporal}{temporal}}
+{\footnotesize\ttfamily Viewer.\+Viewer.\+temporal}
+
+
+
+Initialise temporal filter object. 
+
+\mbox{\Hypertarget{class_viewer_1_1_viewer_a8e485580bcdab6c6adcdc0c068e13566}\label{class_viewer_1_1_viewer_a8e485580bcdab6c6adcdc0c068e13566}} 
+\index{Viewer.Viewer@{Viewer.Viewer}!verified\_deployment\_area@{verified\_deployment\_area}}
+\index{verified\_deployment\_area@{verified\_deployment\_area}!Viewer.Viewer@{Viewer.Viewer}}
+\doxysubsubsection{\texorpdfstring{verified\_deployment\_area}{verified\_deployment\_area}}
+{\footnotesize\ttfamily Viewer.\+Viewer.\+verified\+\_\+deployment\+\_\+area}
+
+
+
+Boolean -\/ used to identify whether or not the deployment area is safe and deployable. 
+
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+C\+:/\+Users/harry/\+One\+Drive/\+Documents/\+Aerial\+\_\+\+Source\+\_\+\+Code/\mbox{\hyperlink{_viewer_8py}{Viewer.\+py}}\end{DoxyCompactItemize}

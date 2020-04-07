@@ -1,0 +1,74 @@
+\hypertarget{namespace_r_l_t_e_s_t}{}\doxysection{R\+L\+T\+E\+ST Namespace Reference}
+\label{namespace_r_l_t_e_s_t}\index{RLTEST@{RLTEST}}
+\doxysubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+def \mbox{\hyperlink{namespace_r_l_t_e_s_t_af98e4d12021b433a1c38044c7bc03627}{arm\+\_\+and\+\_\+takeoff}} (secs)
+\item 
+def \mbox{\hyperlink{namespace_r_l_t_e_s_t_aa5b7c5c2ee05245cf5e8a66d95212cb6}{send\+\_\+ned\+\_\+velocity}} (velocity\+\_\+x, velocity\+\_\+y, velocity\+\_\+z, duration)
+\begin{DoxyCompactList}\small\item\em Move vehicle in direction based on specified velocity vectors. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespace_r_l_t_e_s_t_a65bc5fa7cd542189ddc03d47d1a1664a}{parser}} = argparse.\+Argument\+Parser(description=\textquotesingle{}commands\textquotesingle{})
+\item 
+\mbox{\hyperlink{namespace_r_l_t_e_s_t_af3fac274b20547eb5c0d8a7dbbff263c}{args}} = parser.\+parse\+\_\+args()
+\item 
+\mbox{\hyperlink{namespace_r_l_t_e_s_t_a7f0ebe39a83f2131fb77c9f94f8f7e5f}{connection\+\_\+string}} = args.\+connect
+\item 
+\mbox{\hyperlink{namespace_r_l_t_e_s_t_a44c7b5b82fe98813d462499119df3aed}{sitl}} = None
+\item 
+\mbox{\hyperlink{namespace_r_l_t_e_s_t_a7b9345aeae39e76930407c893926f040}{vehicle}} = connect(\textquotesingle{}/dev/cu.\+usbmodem1411\textquotesingle{}, wait\+\_\+ready=True, baud=115200)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Function Documentation}
+\mbox{\Hypertarget{namespace_r_l_t_e_s_t_af98e4d12021b433a1c38044c7bc03627}\label{namespace_r_l_t_e_s_t_af98e4d12021b433a1c38044c7bc03627}} 
+\index{RLTEST@{RLTEST}!arm\_and\_takeoff@{arm\_and\_takeoff}}
+\index{arm\_and\_takeoff@{arm\_and\_takeoff}!RLTEST@{RLTEST}}
+\doxysubsubsection{\texorpdfstring{arm\_and\_takeoff()}{arm\_and\_takeoff()}}
+{\footnotesize\ttfamily def R\+L\+T\+E\+S\+T.\+arm\+\_\+and\+\_\+takeoff (\begin{DoxyParamCaption}\item[{}]{secs }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{namespace_r_l_t_e_s_t_aa5b7c5c2ee05245cf5e8a66d95212cb6}\label{namespace_r_l_t_e_s_t_aa5b7c5c2ee05245cf5e8a66d95212cb6}} 
+\index{RLTEST@{RLTEST}!send\_ned\_velocity@{send\_ned\_velocity}}
+\index{send\_ned\_velocity@{send\_ned\_velocity}!RLTEST@{RLTEST}}
+\doxysubsubsection{\texorpdfstring{send\_ned\_velocity()}{send\_ned\_velocity()}}
+{\footnotesize\ttfamily def R\+L\+T\+E\+S\+T.\+send\+\_\+ned\+\_\+velocity (\begin{DoxyParamCaption}\item[{}]{velocity\+\_\+x,  }\item[{}]{velocity\+\_\+y,  }\item[{}]{velocity\+\_\+z,  }\item[{}]{duration }\end{DoxyParamCaption})}
+
+
+
+Move vehicle in direction based on specified velocity vectors. 
+
+
+
+\doxysubsection{Variable Documentation}
+\mbox{\Hypertarget{namespace_r_l_t_e_s_t_af3fac274b20547eb5c0d8a7dbbff263c}\label{namespace_r_l_t_e_s_t_af3fac274b20547eb5c0d8a7dbbff263c}} 
+\index{RLTEST@{RLTEST}!args@{args}}
+\index{args@{args}!RLTEST@{RLTEST}}
+\doxysubsubsection{\texorpdfstring{args}{args}}
+{\footnotesize\ttfamily R\+L\+T\+E\+S\+T.\+args = parser.\+parse\+\_\+args()}
+
+\mbox{\Hypertarget{namespace_r_l_t_e_s_t_a7f0ebe39a83f2131fb77c9f94f8f7e5f}\label{namespace_r_l_t_e_s_t_a7f0ebe39a83f2131fb77c9f94f8f7e5f}} 
+\index{RLTEST@{RLTEST}!connection\_string@{connection\_string}}
+\index{connection\_string@{connection\_string}!RLTEST@{RLTEST}}
+\doxysubsubsection{\texorpdfstring{connection\_string}{connection\_string}}
+{\footnotesize\ttfamily R\+L\+T\+E\+S\+T.\+connection\+\_\+string = args.\+connect}
+
+\mbox{\Hypertarget{namespace_r_l_t_e_s_t_a65bc5fa7cd542189ddc03d47d1a1664a}\label{namespace_r_l_t_e_s_t_a65bc5fa7cd542189ddc03d47d1a1664a}} 
+\index{RLTEST@{RLTEST}!parser@{parser}}
+\index{parser@{parser}!RLTEST@{RLTEST}}
+\doxysubsubsection{\texorpdfstring{parser}{parser}}
+{\footnotesize\ttfamily R\+L\+T\+E\+S\+T.\+parser = argparse.\+Argument\+Parser(description=\textquotesingle{}commands\textquotesingle{})}
+
+\mbox{\Hypertarget{namespace_r_l_t_e_s_t_a44c7b5b82fe98813d462499119df3aed}\label{namespace_r_l_t_e_s_t_a44c7b5b82fe98813d462499119df3aed}} 
+\index{RLTEST@{RLTEST}!sitl@{sitl}}
+\index{sitl@{sitl}!RLTEST@{RLTEST}}
+\doxysubsubsection{\texorpdfstring{sitl}{sitl}}
+{\footnotesize\ttfamily R\+L\+T\+E\+S\+T.\+sitl = None}
+
+\mbox{\Hypertarget{namespace_r_l_t_e_s_t_a7b9345aeae39e76930407c893926f040}\label{namespace_r_l_t_e_s_t_a7b9345aeae39e76930407c893926f040}} 
+\index{RLTEST@{RLTEST}!vehicle@{vehicle}}
+\index{vehicle@{vehicle}!RLTEST@{RLTEST}}
+\doxysubsubsection{\texorpdfstring{vehicle}{vehicle}}
+{\footnotesize\ttfamily R\+L\+T\+E\+S\+T.\+vehicle = connect(\textquotesingle{}/dev/cu.\+usbmodem1411\textquotesingle{}, wait\+\_\+ready=True, baud=115200)}
+
